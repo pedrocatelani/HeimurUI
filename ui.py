@@ -12,12 +12,56 @@ def get_theme(root:str) -> str:
         return 'DarkGreen1'
     elif root == 'Nekrigi':
         return 'DarkPurple'
-    elif root == 'Arzurian':
+    elif root == 'Azurian':
         return 'LightBlue5'
     elif root == 'Krymmenos':
         return 'DarkRed1'
     elif root == 'Dark':
         return 'DarkBlack'
+
+def put_points_window(settings,game):
+    
+    col_1 = [
+        [sg.Text("Força:")] ,
+        [sg.Text("Destreza:")],
+        [sg.Text("Constituição:")],
+        [sg.Text("Inteligência:")],
+    ]
+
+    col_2 = [
+        [sg.Input('0',s=3,key='for')],
+        [sg.Input('0',s=3,key='des')],
+        [sg.Input('0',s=3,key='con')],
+        [sg.Input('0',s=3,key='int')],
+    ]
+
+    layout_points = [
+        [sg.Text("Atribuição de Pontos!!!")],
+        [sg.HorizontalSeparator()],
+        [sg.Text("Pontos Restantes:"),sg.Text(f'{game.atributes["current_points"]}')],
+        [sg.HorizontalSeparator()],
+        [sg.Column(col_1),sg.Column(col_2)],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Check',size=23)],
+    ]
+
+    window = sg.Window('Tabela de Pontos', layout_points)
+    while True:
+        event, values = window.read()
+
+        if event == 'Check':
+            if game.check_points(values['for'],values['des'],values['con'],values['int']):
+                window.close()
+                game.add_points(values['for'],values['des'],values['con'],values['int'])
+                settings["GAME"]["init"] = 1
+                main_window(settings,game)
+                break
+            else:
+                sg.popup_no_titlebar('VALORES INVÁLIDOS!!!!')
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
 
 def refresh_window(settings):
 
@@ -76,7 +120,7 @@ def settings_window(settings):
             window.close()
             break
 
-def main_window(settings):
+def main_window(settings,game):
 
     menu_bar_definition = [
         ["Menu",["Configurações","Sobre","Save","Load"]]
@@ -86,12 +130,22 @@ def main_window(settings):
         [sg.MenubarCustom(menu_bar_definition)],
         [sg.Text("Bem vindo a Mini Heimur!",justification='center')],
         [sg.HorizontalSeparator()],
-        [sg.Button('Ações',size=(20,4)),sg.Button('Personagem',size=(20,4))],
+        [sg.Button('Ações',size=(20,4)),sg.Button('Personagem',size=(20,4)),sg.Button('Loja',size=(20,4))],
     ]
 
     window = sg.Window("Heimur Game 3.5", layout_main)
     while True:
         event,values = window.read()
+
+        if event == 'Ações':
+            window.close()
+            action_window(settings,game)
+            break
+
+        if event == 'Personagem':
+            window.close()
+            char_window(settings,game)
+            break
 
         if event == 'Sobre':
             window.disappear()
@@ -107,7 +161,247 @@ def main_window(settings):
             window.close()
             break
 
-def create_settings():
+def action_window(settings,game):
+    action_layout = [
+        [sg.Text('Ações!')],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Descansar',size=(15,3)),sg.Button('Caçar',size=(15,3)),sg.Button('Harvest',size=(15,3))],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Voltar',size=7)],
+    ]
+
+    window = sg.Window('',action_layout)
+    while True:
+        event, values = window.read()
+        
+        if event == 'Harvest':
+            window.close()
+            harvest_window(settings,game)
+            break
+
+        if event == 'Caçar':
+            window.close()
+            combat_window(settings,game)
+            break
+
+        if event == 'Voltar':
+            window.close()
+            main_window(settings,game)
+            break
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
+
+def harvest_window(settings,game):
+    harvest_layout = [
+        [sg.Text('Ações!')],
+        [sg.HorizontalSeparator()],
+        [],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Voltar',size=7)],
+    ]
+
+    window = sg.Window('',harvest_layout)
+    while True:
+        event, values = window.read()
+
+        if event == 'Voltar':
+            window.close()
+            action_window(settings,game)
+            break
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
+
+def combat_window(settings,game):
+    combat_layout = [
+        [sg.Text('Combate!')],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Fugir')],
+        [sg.HorizontalSeparator()],
+    ]
+
+    window = sg.Window('',combat_layout)
+    while True:
+        event, values = window.read()
+
+        if event == 'Fugir':
+            window.close()
+            action_window(settings,game)
+            break
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
+
+def char_window(settings,game):
+    char_layout = [
+        [sg.Text('Personagem!')],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Inventário',size=(15,3)),sg.Button('Status',size=(15,3)),sg.Button('Magias',size=(15,3))],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Voltar',size=7),sg.Button('Cheats',size=7)],
+    ]
+
+    window = sg.Window('',char_layout)
+    while True:
+        event, values = window.read()
+
+        if event == 'Magias':
+            window.close()
+            spell_window(settings,game)
+            break
+
+        if event == 'Status':
+            window.close()
+            status_window(settings,game)
+            break
+
+        if event == 'Inventário':
+            window.close()
+            inventory_window(settings,game)
+            break
+
+        if event == 'Voltar':
+            window.close()
+            main_window(settings,game)
+            break
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
+
+def spell_window(settings,game):
+    spell_layout = [
+        [sg.Text('Magias!')],
+        [sg.HorizontalSeparator()],
+        [],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Voltar',size=7)],
+    ]
+
+    window = sg.Window('',spell_layout)
+    while True:
+        event, values = window.read()
+
+        if event == 'Voltar':
+            window.close()
+            char_window(settings,game)
+            break
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
+
+def status_window(settings,game):
+    stts_layout = [
+        [sg.Text('Estatísticas!')],
+        [sg.HorizontalSeparator()],
+        [sg.Text("Atributos:")],
+        [sg.HorizontalSeparator()],
+        [sg.Text("Bônus:")],
+        [sg.HorizontalSeparator()],
+        [sg.Text("Outros:")],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Voltar',size=7)],
+    ]
+
+    window = sg.Window('',stts_layout)
+    while True:
+        event, values = window.read()
+
+        if event == 'Voltar':
+            window.close()
+            char_window(settings,game)
+            break
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
+
+def inventory_window(settings,game):
+    inv_layout = [
+        [sg.Text('Inventário!')],
+        [sg.HorizontalSeparator()],
+        [sg.Text('Materiais:')],
+        [],
+        [sg.HorizontalSeparator()],
+        [sg.Text('Itens:')],
+        [],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Voltar',size=7),sg.Button('Armas',size=7),sg.Button('Craft',size=7)],
+    ]
+
+    window = sg.Window('',inv_layout)
+    while True:
+        event, values = window.read()
+
+        if event == 'Armas':
+            window.close()
+            weapons_window(settings,game)
+            break
+
+        if event == 'Craft':
+            window.close()
+            craft_window(settings,game)
+            break
+
+        if event == 'Voltar':
+            window.close()
+            char_window(settings,game)
+            break
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
+
+def craft_window(settings,game):
+    craft_layout = [
+        [sg.Text('Crafting!')],
+        [sg.HorizontalSeparator()],
+        [],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Voltar',size=7),sg.Button('Fazer',size=7)],
+    ]
+
+    window = sg.Window('',craft_layout)
+    while True:
+        event, values = window.read()
+
+        if event == 'Voltar':
+            window.close()
+            inventory_window(settings,game)
+            break
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
+
+def weapons_window(settings,game):
+    weapons_layout = [
+        [sg.Text('Armas!')],
+        [sg.HorizontalSeparator()],
+        [sg.Text('Obtidas:')],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Voltar',size=7),sg.Button('Trocar',size=7)],
+    ]
+
+    window = sg.Window('',weapons_layout)
+    while True:
+        event, values = window.read()
+
+        if event == 'Voltar':
+            window.close()
+            inventory_window(settings,game)
+            break
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
+
+def create_settings(game:object):
     settings_path = Path.cwd()
     settings = sg.UserSettings(
         path=settings_path,
@@ -117,4 +411,7 @@ def create_settings():
         )
         
     refresh_window(settings)
-    main_window(settings)
+    if game.initialized == '1':
+        main_window(settings,game)
+    else:
+        put_points_window(settings,game)

@@ -1,3 +1,6 @@
 from ui import create_settings
+from Aspects.game import Game
 
-create_settings()
+game = Game()
+
+create_settings(game)
