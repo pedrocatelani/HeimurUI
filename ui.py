@@ -72,7 +72,7 @@ def refresh_window(settings):
     sg.theme(theme)
     sg.set_options(font = (font_family, font_size))
 
-def settings_window(settings):
+def settings_window(settings,game):
     col_1 = [
         [sg.Text("Tema:")],
         [sg.Text("Tamanho Fonte:")],
@@ -113,7 +113,7 @@ def settings_window(settings):
             settings["FILE"]["assets_folder"] = values["IMAGES"]
             refresh_window(settings)
             window.close()
-            main_window(settings)
+            main_window(settings,game)
             break
             
         if event == sg.WINDOW_CLOSED:
@@ -154,7 +154,7 @@ def main_window(settings,game):
 
         if event == 'Configurações':
             window.close()
-            settings_window(settings)
+            settings_window(settings,game)
             break
 
         if event == sg.WIN_CLOSED:
@@ -194,10 +194,29 @@ def action_window(settings,game):
             break
 
 def harvest_window(settings,game):
-    harvest_layout = [
-        [sg.Text('Ações!')],
+
+    col_1 = [
+        [sg.Button('Minerar',size=15,key='mine')],
+        [sg.Text('Pedra:'),sg.Text(f'{game.materials["stone"]}',key='stone')],
+        [sg.Text('Ferro'),sg.Text(f'{game.materials["iron"]}',key='iron')],
         [sg.HorizontalSeparator()],
-        [],
+        [sg.Button('Coletar',size=15,key='gather')],
+        [sg.Text('Graveto'),sg.Text(f'{game.materials["sticks"]}',key='sticks')],
+        [sg.Text('Madeira'),sg.Text(f'{game.materials["wood"]}',key='wood')],
+    ]
+
+    col_2 = [
+        [sg.Button('Buscar',size=15,key='search')],
+        [sg.Text('Fruta:'),sg.Text(f'{game.materials["berries"]}',key='berries')],
+        [sg.Text('Morango:'),sg.Text(f'{game.materials["strawberries"]}',key='strawberries')],
+        [sg.Text('Erva:'),sg.Text(f'{game.materials["green_herb"]}',key='green_herb')],
+        [sg.Text('Erva Azul:'),sg.Text(f'{game.materials["blue_herb"]}',key='blue_herb')],
+    ]
+
+    harvest_layout = [
+        [sg.Text('Harvest!')],
+        [sg.HorizontalSeparator()],
+        [sg.Column(col_1),sg.VerticalSeparator(),sg.Column(col_2)],
         [sg.HorizontalSeparator()],
         [sg.Button('Voltar',size=7)],
     ]
