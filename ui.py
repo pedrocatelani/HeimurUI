@@ -282,6 +282,11 @@ def char_window(settings,game):
     while True:
         event, values = window.read()
 
+        if event == 'Cheats':
+            window.close()
+            cheats_window(settings,game)
+            break
+
         if event == 'Magias':
             window.close()
             spell_window(settings,game)
@@ -300,6 +305,61 @@ def char_window(settings,game):
         if event == 'Voltar':
             window.close()
             main_window(settings,game)
+            break
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
+
+def cheats_window(settings,game):
+
+    col_1 = [
+        [sg.Button('potion',size=10)],
+        [sg.Button('revive',size=10)],
+        [sg.Button('materials',size=10)],
+    ]
+
+    col_2 = [
+        [sg.Button('elixir',size=10)],
+        [sg.Button('100 money',size=10)],
+        [sg.Button('1000 money',size=10)],
+    ]
+
+    cheats_layout = [
+        [sg.Text('CHEATS!!!!')],
+        [sg.HorizontalSeparator()],
+        [sg.Text('Usuário: '),sg.Input(size=11,key='user')],
+        [sg.HorizontalSeparator()],
+        [sg.Column(col_1),sg.Column(col_2)],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Voltar',size=7)],
+    ]
+
+    window = sg.Window('',cheats_layout)
+    while True:
+        event, values = window.read()
+
+        if values["user"] in game.users_cheats:
+            print('Usuário Válidado!!!')
+            if event in ['potion','elixir','revive']:
+                game.inventory[f"{event}"] += 15
+            if event == '100 money':
+                game.inventory["money"] += 100
+            if event == '1000 money':
+                game.inventory["money"] += 1000
+            if event == 'materials':
+                game.materials["sticks"] += 50
+                game.materials["wood"] += 50
+                game.materials["stone"] += 50
+                game.materials["iron"] += 50
+                game.materials["green_herb"] += 50
+                game.materials["blue_herb"] += 50
+                game.materials["berries"] += 50
+                game.materials["strawberries"] += 50
+
+        if event == 'Voltar':
+            window.close()
+            char_window(settings,game)
             break
 
         if event == sg.WIN_CLOSED:

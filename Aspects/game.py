@@ -9,9 +9,11 @@ class Game():
     initialized = settings["GAME"]["init"]
     atributes = {'for': 0,'des': 0,'con': 0,'int': 0,'current_points': 12}
     status = {'xp_max': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'lvl': 1}
-    inventory = {'money': 0,'potion': 5,'elixir': 2}
+    inventory = {'money': 0,'potion': 5,'elixir': 2,'revive': 1}
     materials = {'sticks': 0,'wood': 0,'iron': 0,'stone': 0,'green_herb': 0,'blue_herb': 0,'berries': 0,'strawberries': 0}
     bonus = {'harvest': 1,'healing': 1}
+
+    users_cheats = ['commando_11','beta_tester']
 
     def check_points(self,str,des,con,intel):
         atr_for = int(str)
