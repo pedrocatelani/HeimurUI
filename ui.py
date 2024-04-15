@@ -195,6 +195,8 @@ def action_window(settings,game):
 
 def harvest_window(settings,game):
 
+    harvest_chance = game.atributes['for'] + game.atributes['des'] + game.atributes['con'] + game.atributes['int']
+
     col_1 = [
         [sg.Button('Minerar',size=15,key='mine')],
         [sg.Text('Pedra:'),sg.Text(f'{game.materials["stone"]}',key='stone')],
@@ -216,6 +218,9 @@ def harvest_window(settings,game):
     harvest_layout = [
         [sg.Text('Harvest!')],
         [sg.HorizontalSeparator()],
+        [sg.Text(f"Chance de Colheita: {harvest_chance}%")],
+        [sg.Text('',key='got')],
+        [sg.HorizontalSeparator()],
         [sg.Column(col_1),sg.VerticalSeparator(),sg.Column(col_2)],
         [sg.HorizontalSeparator()],
         [sg.Button('Voltar',size=7)],
@@ -224,6 +229,15 @@ def harvest_window(settings,game):
     window = sg.Window('',harvest_layout)
     while True:
         event, values = window.read()
+
+        if event in ["mine","gather","search"]:
+            if game.roll_harvest_chance():
+                rs = game.get_resources(event)
+                print(rs)
+                window["got"].update(f'Você conseguiu {rs[1]} {rs[0]}!')
+                window[f"{rs[0]}"].update(f'{game.materials[f"{rs[0]}"]}')
+            else:
+                window["got"].update(f'Você não encontrou nada!')
 
         if event == 'Voltar':
             window.close()

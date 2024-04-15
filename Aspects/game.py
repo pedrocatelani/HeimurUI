@@ -1,3 +1,4 @@
+import random as rd
 from configparser import ConfigParser
 
 class Game():
@@ -10,6 +11,7 @@ class Game():
     status = {'xp_max': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'lvl': 1}
     inventory = {'money': 0,'potion': 5,'elixir': 2}
     materials = {'sticks': 0,'wood': 0,'iron': 0,'stone': 0,'green_herb': 0,'blue_herb': 0,'berries': 0,'strawberries': 0}
+    bonus = {'harvest': 1,'healing': 1}
 
     def check_points(self,str,des,con,intel):
         atr_for = int(str)
@@ -29,3 +31,23 @@ class Game():
         self.atributes["con"] += int(con)
         self.atributes["int"] += int(intel)
         self.atributes["current_points"] = 0
+
+    def roll_harvest_chance(self):
+        chance = rd.randint(1,100)
+        if chance <= (self.atributes["for"] + self.atributes["des"] + self.atributes["con"] + self.atributes["int"]):
+            return True
+        else:
+            return False
+        
+    def get_resources(self,type:str) -> list:
+        if type == 'mine':
+            resource = rd.choice(['stone','iron'])
+        if type == 'gather':
+            resource = rd.choice(['sticks','wood'])
+        if type == 'search':
+            resource = rd.choice(['green_herb','blue_herb','berries','strawberries'])
+
+        qnt = rd.randint(1,self.status["lvl"]) * self.bonus['harvest']
+
+        self.materials[f"{resource}"] += qnt
+        return [resource,qnt]
