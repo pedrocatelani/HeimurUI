@@ -249,10 +249,31 @@ def harvest_window(settings,game):
             break
 
 def combat_window(settings,game):
+
+    game.get_monster('plains')
+
+    col_1 = [
+        [sg.Text(f'{game.get_hp_percent(game.status["current_hp"],game.status["max_hp"])}%')],
+        [sg.Image('_internal/assets/char.png')],
+    ]
+
+    col_2 = [
+        [sg.Text('Rolagem:')],
+        [sg.Text('0')],
+    ]
+
+    col_3 = [
+        [sg.Text(f'{game.get_hp_percent(game.monster["current_hp"],game.monster["max_hp"])}%')],
+        [sg.Image(f'_internal/assets/{game.monster['name']}.png')],
+    ]
+
     combat_layout = [
         [sg.Text('Combate!')],
         [sg.HorizontalSeparator()],
-        [sg.Button('Fugir')],
+        [sg.Column(col_1),sg.VerticalSeparator(),sg.Column(col_2),sg.VerticalSeparator(),sg.Column(col_3)],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Lutar',size=10),sg.Button('Itens',size=10),sg.Button('Libra',size=10)],
+        [sg.Button('Magias',size=10),sg.Button('Fugir',size=10)],
         [sg.HorizontalSeparator()],
     ]
 
@@ -389,6 +410,19 @@ def spell_window(settings,game):
             break
 
 def status_window(settings,game):
+
+    others_1 = [
+        [sg.Text('Vida:')],
+        [sg.Text('Exp:')],
+        [sg.Text('Level:')],
+    ]
+
+    others_2 = [
+        [sg.Text(f'{game.status['current_hp']}/{game.status['max_hp']}')],
+        [sg.Text(f'{game.status['current_xp']}/{game.status['max_xp']}')],
+        [sg.Text(f'{game.status['level']}')],
+    ]
+
     stts_layout = [
         [sg.Text('Estatísticas!')],
         [sg.HorizontalSeparator()],
@@ -397,6 +431,7 @@ def status_window(settings,game):
         [sg.Text("Bônus:")],
         [sg.HorizontalSeparator()],
         [sg.Text("Outros:")],
+        [sg.Column(others_1),sg.Column(others_2)],
         [sg.HorizontalSeparator()],
         [sg.Button('Voltar',size=7)],
     ]

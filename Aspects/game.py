@@ -5,15 +5,22 @@ class Game():
 
     settings = ConfigParser()
     settings.read('_internal/config.ini')
+    monsters = ConfigParser()
+    monsters.read('_internal/monsters.ini')
 
     initialized = settings["GAME"]["init"]
     atributes = {'for': 0,'des': 0,'con': 0,'int': 0,'current_points': 12}
-    status = {'xp_max': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'lvl': 1}
+    status = {'max_xp': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'level': 1}
     inventory = {'money': 0,'potion': 5,'elixir': 2,'revive': 1}
     materials = {'sticks': 0,'wood': 0,'iron': 0,'stone': 0,'green_herb': 0,'blue_herb': 0,'berries': 0,'strawberries': 0}
     bonus = {'harvest': 1,'healing': 1}
+    monster = {'name':'','max_hp': 0,'current_hp': 0,'def': 0,'atq': 0,'dmg': 0,'level': 0,'special': 0,'super_special': 0,'mult_money': 0,'mult_xp': 0,'mult_shard': 0}
 
     users_cheats = ['commando_11','beta_tester']
+
+    def refresh_status(self):
+        self.status["max_hp"] = 2 * (self.atributes["con"]) + self.status["level"]
+        self.status["current_hp"] = self.status["max_hp"]
 
     def check_points(self,str,des,con,intel):
         atr_for = int(str)
@@ -33,6 +40,7 @@ class Game():
         self.atributes["con"] += int(con)
         self.atributes["int"] += int(intel)
         self.atributes["current_points"] = 0
+        self.refresh_status()
 
     def roll_harvest_chance(self):
         chance = rd.randint(1,100)
@@ -53,3 +61,31 @@ class Game():
 
         self.materials[f"{resource}"] += qnt
         return [resource,qnt]
+    
+    def get_monster_level(self):
+        monster_level = rd.randint((self.status["level"]- 5),(self.status["level"]+ 5))
+        if monster_level < 1 or self.status["level"] == 1:
+            monster_level = 1
+        return monster_level
+
+    def get_monster(self,local):
+        mst = rd.choice(self.monsters["LIST"][f'{local}'].split("|"))
+        self.monster["name"] = mst
+        self.monster["level"] = self.get_monster_level()
+        self.monster["max_hp"] = self.monsters[f"{mst}"]["hp"] * self.monster["level"]
+        self.monster["current_hp"] = self.monster["max_hp"]
+        self.monster["def"] = self.monsters[f"{mst}"]["def"]
+        self.monster["atq"] = self.monsters[f"{mst}"]["atq"]
+        self.monster["dmg"] = self.monsters[f"{mst}"]["dmg"]
+        self.monster["special"] = self.monsters[f"{mst}"]["sp"]
+        self.monster["super_special"] = self.monsters[f"{mst}"]["xsp"]
+        self.monster["mult_money"] = self.monsters[f"{mst}"]["din"]
+        self.monster["mult_xp"] = self.monsters[f"{mst}"]["exp"]
+        self.monster["mult_shard"] = self.monsters[f"{mst}"]["shard"]
+        print(self.monster)
+
+    def get_hp_percent(self,current,total):
+        percent = int(current) / int(total)
+        percent *= 100
+        percent = round(percent,2)
+        return percent
