@@ -8,13 +8,14 @@ class Game():
     monsters = ConfigParser()
     monsters.read('_internal/monsters.ini')
 
+    region = 'plains'
     initialized = settings["GAME"]["init"]
     atributes = {'for': 0,'des': 0,'con': 0,'int': 0,'current_points': 12}
-    status = {'max_xp': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'level': 1}
+    status = {'max_xp': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'level': 1,'atq': 0,'def': 0,'base_dmg': 0}
     inventory = {'money': 0,'potion': 5,'elixir': 2,'revive': 1}
     materials = {'sticks': 0,'wood': 0,'iron': 0,'stone': 0,'green_herb': 0,'blue_herb': 0,'berries': 0,'strawberries': 0}
     bonus = {'harvest': 1,'healing': 1}
-    monster = {'name':'','max_hp': 0,'current_hp': 0,'def': 0,'atq': 0,'dmg': 0,'level': 0,'special': 0,'super_special': 0,'mult_money': 0,'mult_xp': 0,'mult_shard': 0}
+    monster = {'name':'','max_hp': 0,'current_hp': 0,'def': 0,'atq': 0,'dmg': 0,'level': 0,'special': 0,'super_special': 0,'mult_money': 0,'mult_xp': 0,'mult_shard': 0,'danger_level': 0}
 
     users_cheats = ['commando_11','beta_tester']
 
@@ -72,16 +73,17 @@ class Game():
         mst = rd.choice(self.monsters["LIST"][f'{local}'].split("|"))
         self.monster["name"] = mst
         self.monster["level"] = self.get_monster_level()
-        self.monster["max_hp"] = self.monsters[f"{mst}"]["hp"] * self.monster["level"]
+        self.monster["max_hp"] = int(self.monsters[f"{mst}"]["hp"]) * self.monster["level"]
         self.monster["current_hp"] = self.monster["max_hp"]
-        self.monster["def"] = self.monsters[f"{mst}"]["def"]
-        self.monster["atq"] = self.monsters[f"{mst}"]["atq"]
-        self.monster["dmg"] = self.monsters[f"{mst}"]["dmg"]
-        self.monster["special"] = self.monsters[f"{mst}"]["sp"]
-        self.monster["super_special"] = self.monsters[f"{mst}"]["xsp"]
-        self.monster["mult_money"] = self.monsters[f"{mst}"]["din"]
-        self.monster["mult_xp"] = self.monsters[f"{mst}"]["exp"]
-        self.monster["mult_shard"] = self.monsters[f"{mst}"]["shard"]
+        self.monster["def"] = float(self.monsters[f"{mst}"]["def"]) + (self.monster["level"] * 1.5)
+        self.monster["atq"] = float(self.monsters[f"{mst}"]["atq"]) + (self.monster["level"] * 1.5)
+        self.monster["dmg"] = int(self.monsters[f"{mst}"]["dmg"])
+        self.monster["special"] = int(self.monsters[f"{mst}"]["sp"])
+        self.monster["super_special"] = int(self.monsters[f"{mst}"]["xsp"])
+        self.monster["mult_money"] = float(self.monsters[f"{mst}"]["din"])
+        self.monster["mult_xp"] = float(self.monsters[f"{mst}"]["exp"])
+        self.monster["mult_shard"] = float(self.monsters[f"{mst}"]["shard"])
+        self.monster["danger_level"] = self.monsters[f"{mst}"]["danger"]
         print(self.monster)
 
     def get_hp_percent(self,current,total):
@@ -89,3 +91,18 @@ class Game():
         percent *= 100
         percent = round(percent,2)
         return percent
+
+    def roll(self,dice:int):
+        return rd.randint(1,dice)
+    
+    def scape(self):
+        bonus = 0
+        if self.status["level"] < 10:
+            bonus = 15 * self.monster["danger_level"]
+        
+        rolagem = self.roll(100)
+        if rolagem + bonus >= 90 - self.atributes["des"]:
+            return True
+        else:
+            return False
+        

@@ -1,3 +1,4 @@
+from time import sleep
 from pathlib import Path
 import PySimpleGUI as sg
 
@@ -250,20 +251,64 @@ def harvest_window(settings,game):
 
 def combat_window(settings,game):
 
-    game.get_monster('plains')
+    def turno_player():
+        rolagem = game.roll(20)
+        window["ROL"].update(rolagem)
+        ataque = rolagem + game.status["atq"]
+        defesa = game.roll(20) + game.monster["def"]
+        pt_crit = defesa + 16
+        if ataque > pt_crit:
+            sg.popup_no_titlebar('Você Acertou um Crítico!!!')
+            dano = 2 * (game.status["level"] + game.status["base_dmg"])
+        elif ataque > defesa:
+            sg.popup_no_titlebar('Você Acertou o Ataque!')
+            dano = game.roll(game.status["level"]) + game.status["base_dmg"]
+        else:
+            sg.popup_no_titlebar('Você Errou o Ataque!')
+            dano = 0
+        
+        game.monster["current_hp"] -= dano
+        window["dmg c"].update(dano)
+        window["permonster"].update(f'{game.get_hp_percent(game.monster["current_hp"],game.monster["max_hp"])}%')
+
+    def turno_inimigo():
+        rolagem = game.roll(20)
+        ataque = rolagem + game.monster["atq"]
+        defesa = game.roll(20) + game.status["def"]
+        pt_crit = defesa + 16
+        if ataque > pt_crit:
+            sg.popup_no_titlebar('Você Recebeu um Crítico!!!')
+            dano = 2 * (game.monster["level"] + game.monster["dmg"])
+        elif ataque > defesa:
+            sg.popup_no_titlebar('Você Recebeu um Ataque!')
+            dano = game.roll(game.monster["level"]) + game.monster["dmg"]
+        else:
+            sg.popup_no_titlebar('Você Defendeu o Ataque!')
+            dano = 0
+        
+        game.status["current_hp"] -= dano
+        window["dmg r"].update(dano)
+        window["perplayer"].update(f'{game.get_hp_percent(game.status["current_hp"],game.status["max_hp"])}%')
+
+    game.get_monster(game.region)
 
     col_1 = [
-        [sg.Text(f'{game.get_hp_percent(game.status["current_hp"],game.status["max_hp"])}%')],
+        [sg.Text(f'{game.get_hp_percent(game.status["current_hp"],game.status["max_hp"])}%',k="perplayer")],
         [sg.Image('_internal/assets/char.png')],
     ]
 
     col_2 = [
-        [sg.Text('Rolagem:')],
-        [sg.Text('0')],
+        [sg.Push(),sg.Text('Ameaça: '),sg.Text(f'{game.monster["danger_level"]}'),sg.Push()],
+        [sg.Push(),sg.Text('Rolagem:'),sg.Push()],
+        [sg.Push(),sg.Text('0',k="ROL"),sg.Push()],
+        [sg.Push(),sg.Text('Dano Causado:'),sg.Push()],
+        [sg.Push(),sg.Text('0',k="dmg c"),sg.Push()],
+        [sg.Push(),sg.Text('Dano Recebido:'),sg.Push()],
+        [sg.Push(),sg.Text('0',k="dmg r"),sg.Push()],
     ]
 
     col_3 = [
-        [sg.Text(f'{game.get_hp_percent(game.monster["current_hp"],game.monster["max_hp"])}%')],
+        [sg.Push(),sg.Text(f'{game.get_hp_percent(game.monster["current_hp"],game.monster["max_hp"])}%',k="permonster")],
         [sg.Image(f'_internal/assets/{game.monster['name']}.png')],
     ]
 
@@ -272,8 +317,8 @@ def combat_window(settings,game):
         [sg.HorizontalSeparator()],
         [sg.Column(col_1),sg.VerticalSeparator(),sg.Column(col_2),sg.VerticalSeparator(),sg.Column(col_3)],
         [sg.HorizontalSeparator()],
-        [sg.Button('Lutar',size=10),sg.Button('Itens',size=10),sg.Button('Libra',size=10)],
-        [sg.Button('Magias',size=10),sg.Button('Fugir',size=10)],
+        [sg.Push(),sg.Button('Lutar',size=10),sg.Button('Itens',size=10),sg.Button('Libra',size=10),sg.Push()],
+        [sg.Push(),sg.Button('Magias',size=10),sg.Button('Fugir',size=10),sg.Push()],
         [sg.HorizontalSeparator()],
     ]
 
@@ -281,10 +326,18 @@ def combat_window(settings,game):
     while True:
         event, values = window.read()
 
+        if event == 'Lutar':
+            turno_player()
+            if game.monster["current_hp"] > 0:
+                turno_inimigo()
+
         if event == 'Fugir':
-            window.close()
-            action_window(settings,game)
-            break
+            if game.status["level"] <= 2 or game.scape == True:
+                window.close()
+                action_window(settings,game)
+                break
+            else:
+                sg.popup_no_titlebar("Você não conseguiu fugir!")
 
         if event == sg.WIN_CLOSED:
             window.close()
