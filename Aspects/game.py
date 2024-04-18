@@ -14,7 +14,7 @@ class Game():
     status = {'max_xp': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'level': 1,'atq': 0,'def': 0,'base_dmg': 0}
     inventory = {'money': 0,'potion': 5,'elixir': 2,'revive': 1,'eq_weapon': ''}
     materials = {'sticks': 0,'wood': 0,'iron': 0,'stone': 0,'green_herb': 0,'blue_herb': 0,'berries': 0,'strawberries': 0}
-    bonus = {'harvest': 1,'healing': 1}
+    bonus = {'harvest': 1,'healing': 1,'atq': 0,'def': 0}
     monster = {'name':'','max_hp': 0,'current_hp': 0,'def': 0,'atq': 0,'dmg': 0,'level': 0,'special': 0,'super_special': 0,'mult_money': 0,'mult_xp': 0,'mult_shard': 0,'danger_level': 0}
 
     users_cheats = ['commando_11','beta_tester']
@@ -22,6 +22,8 @@ class Game():
     def refresh_status(self):
         self.status["max_hp"] = 2 * (self.atributes["con"]) + self.status["level"]
         self.status["current_hp"] = self.status["max_hp"]
+        self.status["max_mana"] = 2 * (self.atributes["int"]) + self.status["level"]
+        self.status["current_mana"] = self.status["max_mana"]
 
     def check_points(self,str,des,con,intel):
         atr_for = int(str)

@@ -469,27 +469,71 @@ def spell_window(settings,game):
 
 def status_window(settings,game):
 
+    atributes_1 = [
+        [sg.Text("Força:")],
+        [sg.Text("Destreza:")],
+        [sg.Text("Constituição:")],
+        [sg.Text("Inteligência:")],
+    ]
+
+    atributes_2 = [
+        [sg.Text(f'{game.atributes["for"]}')],
+        [sg.Text(f'{game.atributes["des"]}')],
+        [sg.Text(f'{game.atributes["con"]}')],
+        [sg.Text(f'{game.atributes["int"]}')],
+    ]
+
     others_1 = [
+        [sg.Text('+Ataque:')],
+        [sg.Text('+Defesa:')],
+        [sg.Text('+Dano:')],
         [sg.Text('Vida:')],
+        [sg.Text('Mana:')],
         [sg.Text('Exp:')],
         [sg.Text('Level:')],
     ]
 
     others_2 = [
+        [sg.Text(f'{game.status['atq']}')],
+        [sg.Text(f'{game.status['def']}')],
+        [sg.Text(f'{game.status['base_dmg']}')],
         [sg.Text(f'{game.status['current_hp']}/{game.status['max_hp']}')],
+        [sg.Text(f'{game.status['current_mana']}/{game.status['max_mana']}')],
         [sg.Text(f'{game.status['current_xp']}/{game.status['max_xp']}')],
         [sg.Text(f'{game.status['level']}')],
     ]
 
-    stts_layout = [
-        [sg.Text('Estatísticas!')],
+    bonus_1 = [
+        [sg.Text('Ataque')],
+        [sg.Text('Defesa')],
+        [sg.Text('Cura')],
+        [sg.Text('Colheita')],
+    ]
+
+    bonus_2 = [
+        [sg.Text(f'{game.bonus["atq"]}(+)')],
+        [sg.Text(f'{game.bonus["def"]}(+)')],
+        [sg.Text(f'{game.bonus["healing"]}(*)')],
+        [sg.Text(f'{game.bonus["harvest"]}(*)')],
+    ]
+
+    master_1 = [
+        [sg.Push(),sg.Text("Atributos:"),sg.Push()],
+        [sg.Column(atributes_1),sg.Column(atributes_2)],
         [sg.HorizontalSeparator()],
-        [sg.Text("Atributos:")],
-        [sg.HorizontalSeparator()],
-        [sg.Text("Bônus:")],
-        [sg.HorizontalSeparator()],
-        [sg.Text("Outros:")],
+        [sg.Push(),sg.Text("Outros:"),sg.Push()],
         [sg.Column(others_1),sg.Column(others_2)],
+    ]
+
+    master_2 = [
+        [sg.Push(),sg.Text("Bônus:"),sg.Push()],
+        [sg.Column(bonus_1),sg.Column(bonus_2)],
+    ]
+
+    stts_layout = [
+        [sg.Text('Estatísticas!'),sg.Push(),sg.Text(f'Arma: {game.inventory["eq_weapon"]}')],
+        [sg.HorizontalSeparator()],
+        [sg.Column(master_1),sg.VerticalSeparator(),sg.Column(master_2)],
         [sg.HorizontalSeparator()],
         [sg.Button('Voltar',size=7)],
     ]
