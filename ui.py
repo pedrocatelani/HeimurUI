@@ -54,7 +54,10 @@ def put_points_window(settings,game):
             if game.check_points(values['for'],values['des'],values['con'],values['int']):
                 window.close()
                 game.add_points(values['for'],values['des'],values['con'],values['int'])
-                settings["GAME"]["init"] = 1
+                game.atributes["current_points"] = 0
+                settings["GAME"]["init"] = 0
+
+                game.weapon_status(game.inventory["eq_weapon"])
                 main_window(settings,game)
                 break
             else:
@@ -130,6 +133,8 @@ def main_window(settings,game):
     layout_main = [
         [sg.MenubarCustom(menu_bar_definition)],
         [sg.Text("Bem vindo a Mini Heimur!",justification='center')],
+        [sg.HorizontalSeparator()],
+        [sg.Push(),sg.Image('_internal/assets/plains.png'),sg.Push()],
         [sg.HorizontalSeparator()],
         [sg.Button('Ações',size=(20,4)),sg.Button('Personagem',size=(20,4)),sg.Button('Loja',size=(20,4))],
     ]
@@ -582,6 +587,32 @@ def weapons_window(settings,game):
             window.close()
             break
 
+def starter_window(settings,game):
+    starter_layout = [
+        [sg.Push(),sg.Text("Bem vindo, novo aventureiro!!!"),sg.Push()],
+        [sg.Push(),sg.Text("Por favor, escolha um caminho:"),sg.Push()],
+        [sg.Push(),sg.Button('Guerreiro',s=10),sg.Push(),sg.Button('Ranger',s=10),sg.Push(),sg.Button('Mago',s=10),sg.Push()],
+        [sg.HorizontalSeparator()],
+        [sg.Image('_internal/assets/Threeway.png')],
+        [sg.HorizontalSeparator()],
+    ]
+
+    window = sg.Window('', starter_layout)
+    while True:
+        event, values = window.read()
+
+        if event in ['Guerreiro','Ranger','Mago']:
+            weapon = game.init_weapon(event)
+            game.inventory["eq_weapon"] = weapon
+            sg.popup_no_titlebar('Sua arma inicial é:',f'{weapon}')
+            window.close()
+            put_points_window(settings,game)
+            break
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
+
 def create_settings(game:object):
     settings_path = Path.cwd()
     settings = sg.UserSettings(
@@ -595,4 +626,4 @@ def create_settings(game:object):
     if game.initialized == '1':
         main_window(settings,game)
     else:
-        put_points_window(settings,game)
+        starter_window(settings,game)

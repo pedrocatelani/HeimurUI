@@ -12,7 +12,7 @@ class Game():
     initialized = settings["GAME"]["init"]
     atributes = {'for': 0,'des': 0,'con': 0,'int': 0,'current_points': 12}
     status = {'max_xp': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'level': 1,'atq': 0,'def': 0,'base_dmg': 0}
-    inventory = {'money': 0,'potion': 5,'elixir': 2,'revive': 1}
+    inventory = {'money': 0,'potion': 5,'elixir': 2,'revive': 1,'eq_weapon': ''}
     materials = {'sticks': 0,'wood': 0,'iron': 0,'stone': 0,'green_herb': 0,'blue_herb': 0,'berries': 0,'strawberries': 0}
     bonus = {'harvest': 1,'healing': 1}
     monster = {'name':'','max_hp': 0,'current_hp': 0,'def': 0,'atq': 0,'dmg': 0,'level': 0,'special': 0,'super_special': 0,'mult_money': 0,'mult_xp': 0,'mult_shard': 0,'danger_level': 0}
@@ -58,7 +58,7 @@ class Game():
         if type == 'search':
             resource = rd.choice(['green_herb','blue_herb','berries','strawberries'])
 
-        qnt = rd.randint(1,self.status["lvl"]) * self.bonus['harvest']
+        qnt = rd.randint(1,self.status["level"]) * self.bonus['harvest']
 
         self.materials[f"{resource}"] += qnt
         return [resource,qnt]
@@ -106,3 +106,38 @@ class Game():
         else:
             return False
         
+    def init_weapon(self,classe:str):
+        if classe == 'Guerreiro':
+            weapons = ('Sword','Lance')
+        elif classe == 'Ranger':
+            weapons = ('Bow','Revolver')
+        elif classe == 'Mago':
+            weapons = ('Staff','Orb')
+
+        return rd.choice(weapons)
+
+    def weapon_status(self,weapon:str):
+        if weapon == 'Sword':
+            self.status["atq"] = self.atributes["des"] / 2
+            self.status["def"] = self.atributes["con"] / 2
+            self.status["base_dmg"] = self.atributes["for"] / 2
+        elif weapon == 'Lance':
+            self.status["atq"] = self.atributes["des"] / 2
+            self.status["def"] = (self.atributes["con"] / 4) + (self.atributes["des"]/4)
+            self.status["base_dmg"] = (self.atributes["for"] / 4) + (self.atributes["des"]/4)
+        elif weapon == 'Bow':
+            self.status["atq"] = (self.atributes["des"] / 4) + (self.status["level"] / 4)
+            self.status["def"] = (self.atributes["con"] / 4) + (self.atributes["des"]/4)
+            self.status["base_dmg"] = (self.atributes["des"] / 2) + (self.status["level"] / 4)
+        elif weapon == 'Revolver':
+            self.status["atq"] = (self.atributes["des"] / 2) + (self.status["level"] / 4)
+            self.status["def"] = (self.atributes["con"] / 4) + (self.atributes["des"]/4)
+            self.status["base_dmg"] = (self.atributes["des"] / 2)
+        elif weapon == 'Staff':
+            self.status["atq"] = (self.atributes["des"] / 2) 
+            self.status["def"] = (self.atributes["con"] / 2) 
+            self.status["base_dmg"] = (self.atributes["int"] / 2)
+        elif weapon == 'Orb':
+            self.status["atq"] = (self.atributes["des"] / 4) + (self.atributes["int"] / 4)
+            self.status["def"] = (self.atributes["con"] / 4) 
+            self.status["base_dmg"] = (self.atributes["int"] / 2) + (self.status["level"] / 4)
