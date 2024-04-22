@@ -55,9 +55,9 @@ def put_points_window(settings,game):
                 window.close()
                 game.add_points(values['for'],values['des'],values['con'],values['int'])
                 game.atributes["current_points"] = 0
-                settings["GAME"]["init"] = 0
 
                 game.weapon_status(game.inventory["eq_weapon"])
+                game.refresh_status()
                 main_window(settings,game)
                 break
             else:
@@ -179,6 +179,23 @@ def action_window(settings,game):
     window = sg.Window('',action_layout)
     while True:
         event, values = window.read()
+
+        if event == 'Descansar':
+            ctrl = False
+            while True:
+                if game.check_xp():
+                    print(True)
+                    ctrl = True
+                    game.comput_xp()
+                else:
+                    break
+            window.close()
+            if ctrl:
+                put_points_window(settings,game)
+            else:
+                game.refresh_status()
+                main_window(settings,game)
+            break
         
         if event == 'Harvest':
             window.close()
@@ -335,6 +352,12 @@ def combat_window(settings,game):
             turno_player()
             if game.monster["current_hp"] > 0:
                 turno_inimigo()
+            else:
+                loot = game.get_loot()
+                window.close()
+                sg.popup_no_titlebar('Você recebeu:',f'{loot[0]} H$',f'{loot[1]} XP',f'{loot[2]} Fragmentos')
+                main_window(settings,game)
+                break
 
         if event == 'Fugir':
             if game.status["level"] <= 2 or game.scape == True:
@@ -402,6 +425,7 @@ def cheats_window(settings,game):
         [sg.Button('elixir',size=10)],
         [sg.Button('100 money',size=10)],
         [sg.Button('1000 money',size=10)],
+        [sg.Button('100 xp',size=10)],
     ]
 
     cheats_layout = [
@@ -420,6 +444,8 @@ def cheats_window(settings,game):
 
         if values["user"] in game.users_cheats:
             print('Usuário Válidado!!!')
+            if event == '100 xp':
+                game.status["current_xp"] += 100
             if event in ['potion','elixir','revive']:
                 game.inventory[f"{event}"] += 15
             if event == '100 money':
@@ -552,14 +578,57 @@ def status_window(settings,game):
             break
 
 def inventory_window(settings,game):
+
+    materials_1 = [
+        [sg.Text('Pedra')],
+        [sg.Text('Ferro')],
+        [sg.Text('Graveto')],
+        [sg.Text('Madeira')],
+        [sg.Text('Erva Verde')],
+        [sg.Text('Erva Azul')],
+        [sg.Text('Frutinha')],
+        [sg.Text('Morangos')],
+    ]
+
+    materials_2 = [
+        [sg.Text(f'{game.materials["stone"]}')],
+        [sg.Text(f'{game.materials["iron"]}')],
+        [sg.Text(f'{game.materials["sticks"]}')],
+        [sg.Text(f'{game.materials["wood"]}')],
+        [sg.Text(f'{game.materials["green_herb"]}')],
+        [sg.Text(f'{game.materials["blue_herb"]}')],
+        [sg.Text(f'{game.materials["berries"]}')],
+        [sg.Text(f'{game.materials["strawberries"]}')],
+    ]
+
+    itens_1 = [
+        [sg.Text('Fragmentos')],
+        [sg.Text('Revives')],
+        [sg.Text('Poção')],
+        [sg.Text('Elixir')],
+    ]
+
+    itens_2 = [
+        [sg.Text(f'{game.inventory["shard"]}')],
+        [sg.Text(f'{game.inventory["revive"]}')],
+        [sg.Text(f'{game.inventory["potion"]}')],
+        [sg.Text(f'{game.inventory["elixir"]}')],
+    ]
+
+    master_1 = [
+        [sg.Push(),sg.Text('Materiais:'),sg.Push()],
+        [sg.Column(materials_1),sg.Column(materials_2)],
+    ]
+
+    master_2 = [
+        [sg.Push(),sg.Text('Itens:'),sg.Push()],
+        [sg.Column(itens_1),sg.Column(itens_2)],
+    ]
+
     inv_layout = [
-        [sg.Text('Inventário!')],
+        [sg.Text('Inventário!'),sg.Push(),sg.Text(f'{game.inventory["money"]} H$')],
         [sg.HorizontalSeparator()],
-        [sg.Text('Materiais:')],
-        [],
-        [sg.HorizontalSeparator()],
-        [sg.Text('Itens:')],
-        [],
+        [sg.Column(master_1),sg.VerticalSeparator(),sg.Column(master_2)],
         [sg.HorizontalSeparator()],
         [sg.Button('Voltar',size=7),sg.Button('Armas',size=7),sg.Button('Craft',size=7)],
     ]
@@ -614,13 +683,29 @@ def weapons_window(settings,game):
         [sg.Text('Armas!')],
         [sg.HorizontalSeparator()],
         [sg.Text('Obtidas:')],
+        [sg.Multiline(size=(15,8),key='Main')],
+        [sg.HorizontalSeparator()],
+        [sg.Text('Escolha:')],
+        [sg.Input(game.inventory["eq_weapon"],key='choice',s=15)],
         [sg.HorizontalSeparator()],
         [sg.Button('Voltar',size=7),sg.Button('Trocar',size=7)],
     ]
 
-    window = sg.Window('',weapons_layout)
+    window = sg.Window('',weapons_layout,finalize=True)
+    window["Main"].update(game.read_weapons())
     while True:
         event, values = window.read()
+
+        if event == 'Trocar':
+            if values["choice"] in game.weapons:
+                game.inventory["eq_weapon"] = values["choice"]
+                game.weapon_status(values["choice"])
+                sg.popup_no_titlebar('Você trocou para:',f'{values["choice"]}')
+                window.close()
+                main_window(settings,game)
+                break
+            else:
+                sg.popup_no_titlebar('EI!!!','Você não possui essa arma!')
 
         if event == 'Voltar':
             window.close()
@@ -648,6 +733,7 @@ def starter_window(settings,game):
         if event in ['Guerreiro','Ranger','Mago']:
             weapon = game.init_weapon(event)
             game.inventory["eq_weapon"] = weapon
+            game.weapons.append(weapon)
             sg.popup_no_titlebar('Sua arma inicial é:',f'{weapon}')
             window.close()
             put_points_window(settings,game)

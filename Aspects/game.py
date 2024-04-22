@@ -12,14 +12,16 @@ class Game():
     initialized = settings["GAME"]["init"]
     atributes = {'for': 0,'des': 0,'con': 0,'int': 0,'current_points': 12}
     status = {'max_xp': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'level': 1,'atq': 0,'def': 0,'base_dmg': 0}
-    inventory = {'money': 0,'potion': 5,'elixir': 2,'revive': 1,'eq_weapon': ''}
+    inventory = {'money': 0,'shard': 0,'potion': 5,'elixir': 2,'revive': 1,'eq_weapon': ''}
     materials = {'sticks': 0,'wood': 0,'iron': 0,'stone': 0,'green_herb': 0,'blue_herb': 0,'berries': 0,'strawberries': 0}
-    bonus = {'harvest': 1,'healing': 1,'atq': 0,'def': 0}
+    bonus = {'harvest': 1,'healing': 1,'atq': 0,'def': 0,'money': 0}
     monster = {'name':'','max_hp': 0,'current_hp': 0,'def': 0,'atq': 0,'dmg': 0,'level': 0,'special': 0,'super_special': 0,'mult_money': 0,'mult_xp': 0,'mult_shard': 0,'danger_level': 0}
 
     users_cheats = ['commando_11','beta_tester']
+    weapons =  []
 
     def refresh_status(self):
+        self.status["max_xp"]  = 11 + (self.status["level"] * 3) 
         self.status["max_hp"] = 2 * (self.atributes["con"]) + self.status["level"]
         self.status["current_hp"] = self.status["max_hp"]
         self.status["max_mana"] = 2 * (self.atributes["int"]) + self.status["level"]
@@ -66,7 +68,7 @@ class Game():
         return [resource,qnt]
     
     def get_monster_level(self):
-        monster_level = rd.randint((self.status["level"]- 5),(self.status["level"]+ 5))
+        monster_level = rd.randint((self.status["level"]- 3),(self.status["level"]+ 3))
         if monster_level < 1 or self.status["level"] == 1:
             monster_level = 1
         return monster_level
@@ -75,17 +77,17 @@ class Game():
         mst = rd.choice(self.monsters["LIST"][f'{local}'].split("|"))
         self.monster["name"] = mst
         self.monster["level"] = self.get_monster_level()
+        self.monster["danger_level"] = int(self.monsters[f"{mst}"]["danger"])
         self.monster["max_hp"] = int(self.monsters[f"{mst}"]["hp"]) * self.monster["level"]
         self.monster["current_hp"] = self.monster["max_hp"]
-        self.monster["def"] = float(self.monsters[f"{mst}"]["def"]) + (self.monster["level"] * 1.5)
-        self.monster["atq"] = float(self.monsters[f"{mst}"]["atq"]) + (self.monster["level"] * 1.5)
+        self.monster["def"] = float(self.monsters[f"{mst}"]["def"]) + (self.monster["level"] / 2 + self.monster["danger_level"])
+        self.monster["atq"] = float(self.monsters[f"{mst}"]["atq"]) + (self.monster["level"] / 2 + self.monster["danger_level"])
         self.monster["dmg"] = int(self.monsters[f"{mst}"]["dmg"])
         self.monster["special"] = int(self.monsters[f"{mst}"]["sp"])
         self.monster["super_special"] = int(self.monsters[f"{mst}"]["xsp"])
         self.monster["mult_money"] = float(self.monsters[f"{mst}"]["din"])
         self.monster["mult_xp"] = float(self.monsters[f"{mst}"]["exp"])
         self.monster["mult_shard"] = float(self.monsters[f"{mst}"]["shard"])
-        self.monster["danger_level"] = self.monsters[f"{mst}"]["danger"]
         print(self.monster)
 
     def get_hp_percent(self,current,total):
@@ -143,3 +145,35 @@ class Game():
             self.status["atq"] = (self.atributes["des"] / 4) + (self.atributes["int"] / 4)
             self.status["def"] = (self.atributes["con"] / 4) 
             self.status["base_dmg"] = (self.atributes["int"] / 2) + (self.status["level"] / 4)
+
+    def read_weapons(self) -> str:
+        weapons_string = ''
+        for w in self.weapons:
+            weapons_string += f'{w} \n'
+        
+        return weapons_string
+
+    def get_loot(self) -> tuple:
+        shard = 0
+        money = (rd.randint(1,16) + self.bonus["money"]) * self.monster["mult_money"]
+        exp = (rd.randint(1,10) + self.monster["level"]) * self.monster["mult_xp"]
+        if rd.randint(1,100) > 17:
+            shard = (rd.randint(1,5) * self.monster["mult_shard"])
+
+        self.inventory["money"] += money    
+        self.inventory["shard"] += shard   
+        self.status["current_xp"] += exp    
+        
+        return (money,exp,shard)
+
+    def check_xp(self) -> bool:
+        if self.status["current_xp"] >= self.status["max_xp"]:
+            return True
+        else:
+            return False
+
+    def comput_xp(self):
+        self.status["current_xp"] -= self.status["max_xp"]
+        self.status["level"] += 1
+        self.atributes["current_points"] += 3
+        self.status["max_xp"]  = 11 + (self.status["level"] * 3) 
