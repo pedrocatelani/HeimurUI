@@ -143,6 +143,11 @@ def main_window(settings,game):
     while True:
         event,values = window.read()
 
+        if event == 'Loja':
+            window.close()
+            shop_window(settings,game)
+            break
+
         if event == 'Ações':
             window.close()
             action_window(settings,game)
@@ -163,6 +168,37 @@ def main_window(settings,game):
             settings_window(settings,game)
             break
 
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
+
+def shop_window(settings,game):
+    column_1 = [
+        [sg.Button('Poção', size=(10,1)),sg.Push(),sg.Text('H$50')],
+        [sg.Button('Elixir', size=(10,1)),sg.Push(),sg.Text('H$70')],
+        [sg.Button('Revive', size=(10,1)),sg.Push(),sg.Text('H$500')],
+    ]
+
+    column_2 = [
+        [sg.Button('Lance', size=(10,1)),sg.Push(),sg.Text('H$150')],
+        [sg.Button('Sword', size=(10,1)),sg.Push(),sg.Text('H$150')],
+        [sg.Button('Bow', size=(10,1)),sg.Push(),sg.Text('H$150')],
+        [sg.Button('Revolver', size=(10,1)),sg.Push(),sg.Text('H$150')],
+        [sg.Button('Staff', size=(10,1)),sg.Push(),sg.Text('H$150')],
+        [sg.Button('Orb', size=(10,1)),sg.Push(),sg.Text('H$150')],
+    ]
+
+    shop_layout = [
+        [sg.Text('Bem Vindo a Loja do Viajante!')],
+        [sg.HorizontalSeparator()],
+        [sg.Column(column_1),sg.VerticalSeparator(),sg.Column(column_2)],
+        [sg.HorizontalSeparator()],
+    ]
+
+    window = sg.Window('', shop_layout)
+    while True:
+        event, values = window.read()
+        
         if event == sg.WIN_CLOSED:
             window.close()
             break
@@ -240,46 +276,71 @@ def travel_window(settings,game):
             window.close()
             game.region = 'plains'
             main_window(settings,game)
+            break
 
         if event == 'Viribus':
             if game.status["level"] >= 15:
-                window.close()
-                game.region = 'viribus'
-                main_window(settings,game)
+                if 'viribus' in game.regions_to_travel:
+                    window.close()
+                    game.region = 'viribus'
+                    main_window(settings,game)
+                    break
+                else:
+                    sg.popup_no_titlebar('Guerreiro!','Voce necessita matar o Boss anterior!')
             else:
                 sg.popup_no_titlebar('Ei!','Você precisa ter nível 15 para acessar essa região!')
 
         if event == 'Prljav':
             if game.status["level"] >= 50:
-                window.close()
-                game.region = 'prljav'
-                main_window(settings,game)
+                if 'prljav' in game.regions_to_travel:
+                    window.close()
+                    game.region = 'prljav'
+                    main_window(settings,game)
+                    break
+                else:
+                    sg.popup_no_titlebar('Guerreiro!','Voce necessita matar o Boss anterior!')
             else:
                 sg.popup_no_titlebar('Ei!','Você precisa ter nível 50 para acessar essa região!')
 
         if event == 'East Land':
             if game.status["level"] >= 70:
-                window.close()
-                game.region = 'east'
-                main_window(settings,game)
+                if 'east' in game.regions_to_travel:
+                    window.close()
+                    game.region = 'east'
+                    main_window(settings,game)
+                    break
+                else:
+                    sg.popup_no_titlebar('Guerreiro!','Voce necessita matar o Boss anterior!')
             else:
                 sg.popup_no_titlebar('Ei!','Você precisa ter nível 70 para acessar essa região!')
 
         if event == 'Auribus':
             if game.status["level"] >= 50:
-                window.close()
-                game.region = 'auribus'
-                main_window(settings,game)
+                if 'auribus' in game.regions_to_travel:
+                    window.close()
+                    game.region = 'auribus'
+                    main_window(settings,game)
+                    break
+                else:
+                    sg.popup_no_titlebar('Guerreiro!','Voce necessita matar o Boss anterior!')
             else:
                 sg.popup_no_titlebar('Ei!','Você precisa ter nível 125 para acessar essa região!')
 
         if event == 'Nekrigi':
             if game.status["level"] >= 50:
-                window.close()
-                game.region = 'nekrigi'
-                main_window(settings,game)
+                if 'nekrigi' in game.regions_to_travel:
+                    window.close()
+                    game.region = 'nekrigi'
+                    main_window(settings,game)
+                    break
+                else:
+                    sg.popup_no_titlebar('Guerreiro!','Voce necessita matar o Boss anterior!')
             else:
                 sg.popup_no_titlebar('Ei!','Você precisa ter nível 160 para acessar essa região!')
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
 
 def harvest_window(settings,game):
 
@@ -423,6 +484,10 @@ def combat_window(settings,game):
                 main_window(settings,game)
             break
 
+        if event == 'Itens':
+            if itens_window(settings,game):
+                turno_inimigo()
+
         if event == 'Lutar':
             turno_player()
             if game.monster["current_hp"] > 0:
@@ -444,6 +509,40 @@ def combat_window(settings,game):
 
         if event == sg.WIN_CLOSED:
             window.close()
+            break
+
+def itens_window(setings,game):
+    itens_layout = [
+        [sg.Text('Itens na bolsa')],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Potion',size=(15,1))],
+        [sg.Button('Elixir', size=(15,1))],
+        [sg.HorizontalSeparator()],
+        [sg.Push(),sg.Button('Fechar', size=(10,1))],
+    ]
+
+    window = sg.Window('', itens_layout)
+    while True:
+        event, values = window.read()
+
+        if event == 'Potion':
+            if game.inventory["potion"] <= 0:
+                sg.popup_no_titlebar('Sem Poções!')
+            else:
+                game.inventory["potion"] -= 1
+                game.heal('hp')
+
+        if event == 'Elixir':
+            if game.inventory["elixir"] <= 0:
+                sg.popup_no_titlebar('Sem Elixires!')
+            else:
+                game.inventory["elixir"] -= 1
+                game.heal('mana')
+
+        if event:
+            window.close()
+            if event in ['Elixir']:
+                return True
             break
 
 def char_window(settings,game):
@@ -705,7 +804,7 @@ def inventory_window(settings,game):
         [sg.HorizontalSeparator()],
         [sg.Column(master_1),sg.VerticalSeparator(),sg.Column(master_2)],
         [sg.HorizontalSeparator()],
-        [sg.Button('Voltar',size=7),sg.Button('Armas',size=7),sg.Button('Craft',size=7)],
+        [sg.Button('Voltar',size=7),sg.Push(),sg.Button('Armas',size=7),sg.Push(),sg.Button('Craft',size=7)],
     ]
 
     window = sg.Window('',inv_layout)

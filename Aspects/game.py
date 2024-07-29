@@ -9,6 +9,8 @@ class Game():
     monsters.read('_internal/monsters.ini')
 
     region = 'plains'
+    regions_to_travel = ['plains']
+
     initialized = settings["GAME"]["init"]
     atributes = {'for': 0,'des': 0,'con': 0,'int': 0,'current_points': 12}
     status = {'max_xp': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'level': 1,'atq': 0,'def': 0,'base_dmg': 0}
@@ -106,7 +108,7 @@ class Game():
             bonus = 15 * self.monster["danger_level"]
         
         rolagem = self.roll(100)
-        if rolagem + bonus >= 90 - self.atributes["des"]:
+        if (rolagem + bonus) >= (90 - self.atributes["des"]):
             return True
         else:
             return False
@@ -196,3 +198,9 @@ class Game():
         self.status["level"] += 1
         self.atributes["current_points"] += 3
         self.status["max_xp"]  = 11 + (self.status["level"] * 3) 
+
+    def heal(self,type:str):
+        rol = rd.randint(1,7) * self.bonus["healing"]
+        self.status[f"current_{type}"] += rol
+        if self.status[f"current_{type}"] > self.status[f"max_{type}"]:
+            self.status[f"current_{type}"] = self.status[f"max_{type}"]
