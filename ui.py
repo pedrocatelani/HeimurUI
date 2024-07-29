@@ -134,7 +134,7 @@ def main_window(settings,game):
         [sg.MenubarCustom(menu_bar_definition)],
         [sg.Text("Bem vindo a Mini Heimur!",justification='center')],
         [sg.HorizontalSeparator()],
-        [sg.Push(),sg.Image('_internal/assets/plains.png'),sg.Push()],
+        [sg.Push(),sg.Image(f'_internal/assets/{game.region}.png'),sg.Push()],
         [sg.HorizontalSeparator()],
         [sg.Button('Ações',size=(20,4)),sg.Button('Personagem',size=(20,4)),sg.Button('Loja',size=(20,4))],
     ]
@@ -173,7 +173,7 @@ def action_window(settings,game):
         [sg.HorizontalSeparator()],
         [sg.Button('Descansar',size=(15,3)),sg.Button('Caçar',size=(15,3)),sg.Button('Harvest',size=(15,3))],
         [sg.HorizontalSeparator()],
-        [sg.Button('Voltar',size=7)],
+        [sg.Button('Voltar',size=7),sg.Push(),sg.Button('Viajar',size=7)],
     ]
 
     window = sg.Window('',action_layout)
@@ -207,6 +207,11 @@ def action_window(settings,game):
             combat_window(settings,game)
             break
 
+        if event == 'Viajar':
+            window.close()
+            travel_window(settings,game)
+            break
+
         if event == 'Voltar':
             window.close()
             main_window(settings,game)
@@ -215,6 +220,66 @@ def action_window(settings,game):
         if event == sg.WIN_CLOSED:
             window.close()
             break
+
+def travel_window(settings,game):
+    travel_layout = [
+        [sg.Push(),sg.Text('Regiões de Heimur!'),sg.Push()],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Plains', size=(15,2)),sg.Button('Viribus', size=(15,2)),sg.Button('Prljav', size=(15,2))],
+        [sg.Button('East Land', size=(15,2)),sg.Button('Auribus', size=(15,2)),sg.Button('Nekrigi', size=(15,2))],
+        [sg.Push(),sg.Button("World's End", size=(20,2)),sg.Push()],
+        [sg.HorizontalSeparator()],
+        [sg.Push(),sg.Text(f'Level Atual: {game.status["level"]}')]
+    ]
+
+    window = sg.Window('', travel_layout)
+    while True:
+        event, values = window.read()
+
+        if event == 'Plains':
+            window.close()
+            game.region = 'plains'
+            main_window(settings,game)
+
+        if event == 'Viribus':
+            if game.status["level"] >= 15:
+                window.close()
+                game.region = 'viribus'
+                main_window(settings,game)
+            else:
+                sg.popup_no_titlebar('Ei!','Você precisa ter nível 15 para acessar essa região!')
+
+        if event == 'Prljav':
+            if game.status["level"] >= 50:
+                window.close()
+                game.region = 'prljav'
+                main_window(settings,game)
+            else:
+                sg.popup_no_titlebar('Ei!','Você precisa ter nível 50 para acessar essa região!')
+
+        if event == 'East Land':
+            if game.status["level"] >= 70:
+                window.close()
+                game.region = 'east'
+                main_window(settings,game)
+            else:
+                sg.popup_no_titlebar('Ei!','Você precisa ter nível 70 para acessar essa região!')
+
+        if event == 'Auribus':
+            if game.status["level"] >= 50:
+                window.close()
+                game.region = 'auribus'
+                main_window(settings,game)
+            else:
+                sg.popup_no_titlebar('Ei!','Você precisa ter nível 125 para acessar essa região!')
+
+        if event == 'Nekrigi':
+            if game.status["level"] >= 50:
+                window.close()
+                game.region = 'nekrigi'
+                main_window(settings,game)
+            else:
+                sg.popup_no_titlebar('Ei!','Você precisa ter nível 160 para acessar essa região!')
 
 def harvest_window(settings,game):
 
@@ -278,8 +343,8 @@ def combat_window(settings,game):
         window["ROL"].update(rolagem)
         ataque = rolagem + game.status["atq"]
         defesa = game.roll(20) + game.monster["def"]
-        pt_crit = defesa + 16
-        if ataque > pt_crit:
+        pt_crit = defesa + 15
+        if ataque >= pt_crit:
             sg.popup_no_titlebar('Você Acertou um Crítico!!!')
             dano = 2 * (game.status["level"] + game.status["base_dmg"])
         elif ataque > defesa:
@@ -317,6 +382,7 @@ def combat_window(settings,game):
     col_1 = [
         [sg.Text(f'{game.get_hp_percent(game.status["current_hp"],game.status["max_hp"])}%',k="perplayer")],
         [sg.Image('_internal/assets/char.png')],
+        [sg.Text(f'Level {game.status["level"]}')]
     ]
 
     col_2 = [
@@ -332,6 +398,7 @@ def combat_window(settings,game):
     col_3 = [
         [sg.Push(),sg.Text(f'{game.get_hp_percent(game.monster["current_hp"],game.monster["max_hp"])}%',k="permonster")],
         [sg.Image(f'_internal/assets/{game.monster['name']}.png')],
+        [sg.Push(),sg.Text(f'Level {game.monster["level"]}')]
     ]
 
     combat_layout = [
@@ -347,6 +414,14 @@ def combat_window(settings,game):
     window = sg.Window('',combat_layout)
     while True:
         event, values = window.read()
+
+        if game.status["current_hp"] <= 0:
+            sg.popup_no_titlebar("Você foi derrotado!")
+            window.close()
+            if game.inventory["revive"] > 0:
+                game.inventory["revive"]  -= 1
+                main_window(settings,game)
+            break
 
         if event == 'Lutar':
             turno_player()

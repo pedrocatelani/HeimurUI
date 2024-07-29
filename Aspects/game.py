@@ -15,7 +15,7 @@ class Game():
     inventory = {'money': 0,'shard': 0,'potion': 5,'elixir': 2,'revive': 1,'eq_weapon': ''}
     materials = {'sticks': 0,'wood': 0,'iron': 0,'stone': 0,'green_herb': 0,'blue_herb': 0,'berries': 0,'strawberries': 0}
     bonus = {'harvest': 1,'healing': 1,'atq': 0,'def': 0,'money': 0}
-    monster = {'name':'','max_hp': 0,'current_hp': 0,'def': 0,'atq': 0,'dmg': 0,'level': 0,'special': 0,'super_special': 0,'mult_money': 0,'mult_xp': 0,'mult_shard': 0,'danger_level': 0}
+    monster = {'name':'','max_hp': 0,'current_hp': 0,'def': 0,'atq': 0,'dmg': 0,'level': 0,'special': 0,'super_special': 0,'mult_money': 0,'mult_xp': 0,'mult_shard': 0,'danger_level': 0,'title': ''}
 
     users_cheats = ['commando_11','beta_tester']
     weapons =  []
@@ -88,6 +88,7 @@ class Game():
         self.monster["mult_money"] = float(self.monsters[f"{mst}"]["din"])
         self.monster["mult_xp"] = float(self.monsters[f"{mst}"]["exp"])
         self.monster["mult_shard"] = float(self.monsters[f"{mst}"]["shard"])
+        self.monster["title"] = self.monsters[f"{mst}"]["title"]
         print(self.monster)
 
     def get_hp_percent(self,current,total):
@@ -121,6 +122,9 @@ class Game():
         return rd.choice(weapons)
 
     def weapon_status(self,weapon:str):
+
+        #Basic Weapons
+
         if weapon == 'Sword':
             self.status["atq"] = self.atributes["des"] / 2
             self.status["def"] = self.atributes["con"] / 2
@@ -146,6 +150,21 @@ class Game():
             self.status["def"] = (self.atributes["con"] / 4) 
             self.status["base_dmg"] = (self.atributes["int"] / 2) + (self.status["level"] / 4)
 
+        #Plain Weapons
+
+        elif weapon == 'Great Sword':
+            self.status["atq"] = self.atributes["for"] /2
+            self.status["def"] = (self.atributes["con"]/4) + (self.atributes["for"]/4)
+            self.status["base_dmg"] = self.atributes["for"] / 2
+        elif weapon == 'Riffle':
+            self.status["atq"] = (self.atributes["des"]/2) + (self.status["level"]/4)
+            self.status["def"] = self.atributes["con"]/2
+            self.status["base_dmg"] = (self.atributes["des"]/4) + (self.status["level"]/2)
+        elif weapon == 'Wand':
+            self.status["atq"] = self.atributes["des"]/2
+            self.status["def"] = self.atributes["con"]/2
+            self.status["base_dmg"] = (self.atributes["int"]/2) + (self.status["level"]/4)
+
     def read_weapons(self) -> str:
         weapons_string = ''
         for w in self.weapons:
@@ -157,7 +176,7 @@ class Game():
         shard = 0
         money = (rd.randint(1,16) + self.bonus["money"]) * self.monster["mult_money"]
         exp = (rd.randint(1,10) + self.monster["level"]) * self.monster["mult_xp"]
-        if rd.randint(1,100) > 17:
+        if rd.randint(1,100) <= 17:
             shard = (rd.randint(1,5) * self.monster["mult_shard"])
 
         self.inventory["money"] += money    
