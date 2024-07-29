@@ -204,3 +204,24 @@ class Game():
         self.status[f"current_{type}"] += rol
         if self.status[f"current_{type}"] > self.status[f"max_{type}"]:
             self.status[f"current_{type}"] = self.status[f"max_{type}"]
+
+    def check_materials(self,item:str,qnt:str):
+        qnt = int(qnt)
+
+        if item == 'potion':
+            if self.materials["green_herb"] >= 15*qnt and self.materials["blue_herb"] >= 5*qnt and self.materials["berries"] >= 2*qnt:
+                self.materials["green_herb"] -= 15*qnt
+                self.materials["blue_herb"] -= 5*qnt
+                self.materials["berries"] -= 2*qnt
+                return True
+            else:
+                return False
+
+        elif item == 'elixir':
+            if self.materials["green_herb"] >= 7*qnt and self.materials["blue_herb"] >= 20*qnt and self.materials["strawberries"] >= 3*qnt:
+                self.materials["green_herb"] -= 7*qnt
+                self.materials["blue_herb"] -= 20*qnt
+                self.materials["strawberries"] -= 3*qnt
+                return True
+            else:
+                return False

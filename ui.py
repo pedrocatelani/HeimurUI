@@ -831,17 +831,35 @@ def inventory_window(settings,game):
             break
 
 def craft_window(settings,game):
+    select = 'Potion'
+
+
     craft_layout = [
         [sg.Text('Crafting!')],
         [sg.HorizontalSeparator()],
-        [],
+        [sg.Button('Potion',size=(7,1)),sg.Push(),sg.Text('5 Ervas A, 15 Ervas, 2 Frutas')],
+        [sg.Button('Elixir',size=(7,1)),sg.Push(),sg.Text('20 Ervas A, 7 Ervas, 3 Morangos')],
         [sg.HorizontalSeparator()],
-        [sg.Button('Voltar',size=7),sg.Button('Fazer',size=7)],
+        [sg.Text(f'Item: {select}', key='item'),sg.Push(),sg.Text('Qnt:'),sg.Input('1',s=(5,1), key='Qnt')],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Voltar',size=7),sg.Push(),sg.Button('Fazer',size=7)],
     ]
 
     window = sg.Window('',craft_layout)
     while True:
         event, values = window.read()
+
+        if event in ['Potion','Elixir']:
+            select = event
+            window["item"].update(f'Item: {select}')
+
+        if event == 'Fazer':
+            select = select.lower()
+            qnt = values["Qnt"]
+            if game.check_materials(select, qnt):
+                game.inventory[f"{select}"] += int(qnt)
+            else:
+                sg.popup_no_titlebar('Sem Recursos suficientes para fazer',f'{qnt} {select.capitalize()}!!!')
 
         if event == 'Voltar':
             window.close()
