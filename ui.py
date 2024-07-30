@@ -173,8 +173,25 @@ def main_window(settings,game):
             break
 
 def shop_window(settings,game):
+
+    def check_price(price:int, qnt:int = 1)->bool:
+        if game.inventory["money"] >= (price * qnt):
+            game.inventory["money"] -= (price * qnt)
+            window["Money"].update(f'H$: {game.inventory["money"]}')
+            return True
+        else:
+            return False
+
+    def get_price(item:str)->int:
+        if item == 'potion':
+            return 50
+        elif item == 'elixir':
+            return 70
+        elif item == 'revive':
+            return 500
+
     column_1 = [
-        [sg.Button('Poção', size=(10,1)),sg.Push(),sg.Text('H$50')],
+        [sg.Button('Potion', size=(10,1)),sg.Push(),sg.Text('H$50')],
         [sg.Button('Elixir', size=(10,1)),sg.Push(),sg.Text('H$70')],
         [sg.Button('Revive', size=(10,1)),sg.Push(),sg.Text('H$500')],
     ]
@@ -189,16 +206,40 @@ def shop_window(settings,game):
     ]
 
     shop_layout = [
-        [sg.Text('Bem Vindo a Loja do Viajante!')],
+        [sg.Text('Bem Vindo a Loja do Viajante!'),sg.Push(),sg.Text(f'H$: {game.inventory["money"]}', key='Money')],
         [sg.HorizontalSeparator()],
         [sg.Column(column_1),sg.VerticalSeparator(),sg.Column(column_2)],
         [sg.HorizontalSeparator()],
+        [sg.Text('Qnt:'),sg.Input('1',s=(5), key='Qnt'),sg.Push(),sg.Button('Sair',size=7)]
     ]
 
     window = sg.Window('', shop_layout)
     while True:
         event, values = window.read()
         
+        if event in ["Lance","Sword","Revolver","Bow","Staff","Orb"]:
+            if event in game.weapons:
+                sg.popup_no_titlebar('Ei, viajante!','Você não pode carregar duas armas iguais!')
+            else:
+                if check_price(150):
+                    game.weapons.append(event)
+                else:
+                    sg.popup_no_titlebar('EI!','Você não tem dinheiro suficiente!')
+
+        if event in ["Potion","Elixir","Revive"]:
+            item = event.lower()
+            qnt = int(values["Qnt"])
+
+            if check_price(get_price(item), qnt):
+                game.inventory[item] += qnt
+            else:
+                sg.popup_no_titlebar('EI!','Você não tem dinheiro suficiente!')
+
+        if event == 'Sair':
+            window.close()
+            main_window(settings,game)
+            break
+
         if event == sg.WIN_CLOSED:
             window.close()
             break
@@ -487,6 +528,7 @@ def combat_window(settings,game):
         if event == 'Itens':
             if itens_window(settings,game):
                 turno_inimigo()
+            window["perplayer"].update(f'{game.get_hp_percent(game.status["current_hp"],game.status["max_hp"])}%')
 
         if event == 'Lutar':
             turno_player()
@@ -500,7 +542,7 @@ def combat_window(settings,game):
                 break
 
         if event == 'Fugir':
-            if game.status["level"] <= 2 or game.scape == True:
+            if game.status["level"] <= 2 or game.scape:
                 window.close()
                 action_window(settings,game)
                 break

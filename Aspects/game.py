@@ -102,13 +102,13 @@ class Game():
     def roll(self,dice:int):
         return rd.randint(1,dice)
     
-    def scape(self):
+    def scape(self,object:object)->bool:
         bonus = 0
-        if self.status["level"] < 10:
-            bonus = 15 * self.monster["danger_level"]
+        if object.status["level"] < 10:
+            bonus = 15 * object.monster["danger_level"]
         
         rolagem = self.roll(100)
-        if (rolagem + bonus) >= (90 - self.atributes["des"]):
+        if (rolagem + bonus) >= (90 - object.atributes["des"]):
             return True
         else:
             return False
