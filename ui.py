@@ -281,6 +281,14 @@ def action_window(settings,game):
                     ctrl = True
                     game.comput_xp()
                 else:
+                    if game.status["level"] == 5 and ('Fast Trigger' not in game.spell.spells_known or 'Zap' not in game.spell.spells_known or 'Charge' not in game.spell.spells_known):
+                        sg.popup_no_titlebar('Você aprendeu uma magia nova!')
+                        if game.path == 'Ranger':
+                            game.spell.spells_known.append('Fast Trigger')
+                        elif game.path == 'Guerreiro':
+                            game.spell.spells_known.append('Charge')
+                        elif game.path == 'Mago':
+                            game.spell.spells_known.append('Zap')
                     break
             window.close()
             if ctrl:
@@ -524,7 +532,7 @@ def combat_window(settings,game):
             game.monster["current_hp"] -= dano
             window["dmg c"].update(dano)
             window["permonster"].update(f'{game.get_hp_percent(game.monster["current_hp"],game.monster["max_hp"])}%')
-            
+
     game.get_monster(game.region)
 
     col_1 = [
@@ -608,7 +616,7 @@ def use_spells_window(settings,game) -> str:
         [sg.Button(f'{game.spell.spells_equiped['slot_1'][0]}', size=(15)),sg.Button(f'{game.spell.spells_equiped['slot_2'][0]}', size=(15))],
         [sg.Push(),sg.Text(f'{game.spell.spells_equiped['slot_1'][2]}MP'),sg.Push(),sg.Text(f'{game.spell.spells_equiped['slot_2'][2]}MP'),sg.Push()],
         [sg.Text('')],
-        [sg.Text(f'{game.get_hp_percent(game.status["current_mana"],game.status["max_mana"])}%')],
+        [sg.Push(),sg.Text(f'{game.get_hp_percent(game.status["current_mana"],game.status["max_mana"])}%'),sg.Push()],
     ]
 
     window = sg.Window('', use_spells_layout)
@@ -754,7 +762,7 @@ def cheats_window(settings,game):
         if values["user"] in game.users_cheats:
             print('Usuário Válidado!!!')
             if event == '100 xp':
-                game.status["current_xp"] += 100
+                game.status["current_xp"] += 99
             if event in ['potion','elixir','revive']:
                 game.inventory[f"{event}"] += 15
             if event == '100 money':

@@ -1,6 +1,6 @@
 class Spells():
 
-    spells_known = ['-None-','Fast Trigger','Charge','Zap']
+    spells_known = ['-None-']
     spells_equiped = {
         'slot_1': ('-None-','No Description',0),
         'slot_2': ('-None-','No Description',0)
