@@ -20,6 +20,7 @@ class Game():
     }
 
     initialized = settings["GAME"]["init"]
+    path = ''
     atributes = {'for': 0,'des': 0,'con': 0,'int': 0,'current_points': 12}
     status = {'max_xp': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'level': 1,'atq': 0,'def': 0,'base_dmg': 0}
     inventory = {'money': 0,'shard': 0,'potion': 5,'elixir': 2,'revive': 1,'eq_weapon': ''}
@@ -29,6 +30,14 @@ class Game():
 
     users_cheats = ['commando_11','beta_tester']
     weapons =  []
+
+    def pathdesc(self)->str:
+        if self.path == 'Ranger':
+            return 'Bonûs de colheita'
+        elif self.path == 'Guerreiro':
+            return 'Cura HP pós batalhas'
+        elif self.path == 'Mago':
+            return 'Cura MP pós batalhas'
 
     def refresh_status(self):
         self.status["max_xp"]  = 11 + (self.status["level"] * 3) 
@@ -73,6 +82,8 @@ class Game():
             resource = rd.choice(['green_herb','blue_herb','berries','strawberries'])
 
         qnt = rd.randint(1,self.status["level"]) * self.bonus['harvest']
+        if self.path == 'Ranger':
+            qnt += self.status["level"]
 
         self.materials[f"{resource}"] += qnt
         return [resource,qnt]
@@ -204,7 +215,7 @@ class Game():
         money = (rd.randint(1,16) + self.bonus["money"]) * self.monster["mult_money"]
         exp = (rd.randint(1,10) + self.monster["level"]) * self.monster["mult_xp"]
         rol = rd.randint(1,100)
-        
+
         print('Shard drop % :',rol)
         if rol <= 20:
             shard = (rd.randint(1,5) * self.monster["mult_shard"])
@@ -216,6 +227,12 @@ class Game():
         self.inventory["shard"] += shard   
         self.status["current_xp"] += exp    
         
+        #Passivas de classe:
+        if self.path == 'Mago':
+            self.heal('mana')
+        if self.path == 'Guerreiro':
+            self.heal('hp')
+
         return (money,exp,shard)
 
     def check_xp(self) -> bool:

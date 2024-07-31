@@ -777,6 +777,9 @@ def status_window(settings,game):
         [sg.HorizontalSeparator()],
         [sg.Column(master_1),sg.VerticalSeparator(),sg.Column(master_2)],
         [sg.HorizontalSeparator()],
+        [sg.Push(),sg.Text(game.path),sg.Push()],
+        [sg.Push(),sg.Text(game.pathdesc()),sg.Push()],
+        [sg.HorizontalSeparator()],
         [sg.Button('Voltar',size=7)],
     ]
 
@@ -965,6 +968,7 @@ def starter_window(settings,game):
         event, values = window.read()
 
         if event in ['Guerreiro','Ranger','Mago']:
+            game.path = event
             weapon = game.init_weapon(event)
             game.inventory["eq_weapon"] = weapon
             game.weapons.append(weapon)
