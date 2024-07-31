@@ -194,6 +194,8 @@ def shop_window(settings,game):
         [sg.Button('Potion', size=(10,1)),sg.Push(),sg.Text('H$50')],
         [sg.Button('Elixir', size=(10,1)),sg.Push(),sg.Text('H$70')],
         [sg.Button('Revive', size=(10,1)),sg.Push(),sg.Text('H$500')],
+        [sg.Button('+Attack', size=(10,1)),sg.Push(),sg.Text(f'H${30+30*game.bonus['atq']}',key='atq')],
+        [sg.Button('+Defense', size=(10,1)),sg.Push(),sg.Text(f'H${25+25*game.bonus['def']}',key='def')],
     ]
 
     column_2 = [
@@ -217,6 +219,20 @@ def shop_window(settings,game):
     while True:
         event, values = window.read()
         
+        if event in ['+Attack','+Defense']:
+            if event == '+Attack':
+                base = 30
+                ctrl = 'atq'
+            else:
+                base = 25
+                ctrl = 'def'
+            
+            if check_price(base+base*game.bonus[ctrl]):
+                game.bonus[ctrl] += 1
+                window[ctrl].update(f'H${base+base*game.bonus[ctrl]}')
+            else:
+                sg.popup_no_titlebar('EI!','Você não tem dinheiro suficiente!')
+
         if event in ["Lance","Sword","Revolver","Bow","Staff","Orb"]:
             if event in game.weapons:
                 sg.popup_no_titlebar('Ei, viajante!','Você não pode carregar duas armas iguais!')
@@ -440,10 +456,10 @@ def harvest_window(settings,game):
 
 def combat_window(settings,game):
 
-    def turno_player():
+    def turno_player(temp_bonus=0):
         rolagem = game.roll(20)
         window["ROL"].update(rolagem)
-        ataque = rolagem + game.status["atq"]
+        ataque = rolagem + game.status["atq"] + game.bonus['atq'] + temp_bonus
         defesa = game.roll(20) + game.monster["def"]
         pt_crit = defesa + 15
         if ataque >= pt_crit:
@@ -463,7 +479,7 @@ def combat_window(settings,game):
     def turno_inimigo():
         rolagem = game.roll(20)
         ataque = rolagem + game.monster["atq"]
-        defesa = game.roll(20) + game.status["def"]
+        defesa = game.roll(20) + game.status["def"] + game.bonus['def']
         pt_crit = defesa + 16
         if ataque > pt_crit:
             sg.popup_no_titlebar('Você Recebeu um Crítico!!!')
@@ -479,6 +495,36 @@ def combat_window(settings,game):
         window["dmg r"].update(dano)
         window["perplayer"].update(f'{game.get_hp_percent(game.status["current_hp"],game.status["max_hp"])}%')
 
+    def drop_loot():
+        loot = game.get_loot()
+        window.close()
+        sg.popup_no_titlebar('Você recebeu:',f'{loot[0]} H$',f'{loot[1]} XP',f'{loot[2]} Fragmentos')
+        main_window(settings,game)
+        
+    def filter_effects(spell):
+        if spell == 'Fast Trigger':
+            turno_player()
+            turno_player()
+            if game.monster["current_hp"] > 0:
+                turno_inimigo()
+            else:
+                drop_loot()
+
+        elif spell == 'Charge':
+            turno_player(10)
+            if game.monster["current_hp"] > 0:
+                turno_inimigo()
+            else:
+                drop_loot()
+
+        elif spell == 'Zap':
+            dano = game.status["level"] * game.roll(8)
+            sg.popup_no_titlebar('Você conjurou Zap!')
+
+            game.monster["current_hp"] -= dano
+            window["dmg c"].update(dano)
+            window["permonster"].update(f'{game.get_hp_percent(game.monster["current_hp"],game.monster["max_hp"])}%')
+            
     game.get_monster(game.region)
 
     col_1 = [
@@ -504,7 +550,7 @@ def combat_window(settings,game):
     ]
 
     combat_layout = [
-        [sg.Text('Combate!')],
+        [sg.Text('Combate!'),sg.Push(),sg.Text(f'{game.monster['title']}')],
         [sg.HorizontalSeparator()],
         [sg.Column(col_1),sg.VerticalSeparator(),sg.Column(col_2),sg.VerticalSeparator(),sg.Column(col_3)],
         [sg.HorizontalSeparator()],
@@ -535,11 +581,13 @@ def combat_window(settings,game):
             if game.monster["current_hp"] > 0:
                 turno_inimigo()
             else:
-                loot = game.get_loot()
-                window.close()
-                sg.popup_no_titlebar('Você recebeu:',f'{loot[0]} H$',f'{loot[1]} XP',f'{loot[2]} Fragmentos')
-                main_window(settings,game)
+                drop_loot()
                 break
+
+        if event == 'Magias':
+            spell = use_spells_window(settings,game)
+            if spell:
+                filter_effects(spell)
 
         if event == 'Fugir':
             if game.status["level"] <= 2 or game.scape(game):
@@ -551,6 +599,48 @@ def combat_window(settings,game):
 
         if event == sg.WIN_CLOSED:
             window.close()
+            break
+
+def use_spells_window(settings,game) -> str:
+    use_spells_layout = [
+        [sg.Push(),sg.Text('Magias Equipadas'),sg.Push()],
+        [sg.HorizontalSeparator()],
+        [sg.Button(f'{game.spell.spells_equiped['slot_1'][0]}', size=(15)),sg.Button(f'{game.spell.spells_equiped['slot_2'][0]}', size=(15))],
+        [sg.Push(),sg.Text(f'{game.spell.spells_equiped['slot_1'][2]}MP'),sg.Push(),sg.Text(f'{game.spell.spells_equiped['slot_2'][2]}MP'),sg.Push()],
+        [sg.Text('')],
+        [sg.Text(f'{game.get_hp_percent(game.status["current_mana"],game.status["max_mana"])}%')],
+    ]
+
+    window = sg.Window('', use_spells_layout)
+    while True:
+        event, values = window.read()
+        print(event)
+
+        if event == f'{game.spell.spells_equiped['slot_1'][0]}':
+            cost = game.spell.spells_equiped['slot_1'][2]
+            if game.spell.check_mana(game,cost):
+                game.status["current_mana"] -= cost
+                window.close()
+                return event
+            else:
+                sg.popup_no_titlebar('Ei!','Você está sem mana para isso!')
+                window.close()
+            break
+
+        if event == f'{game.spell.spells_equiped['slot_2'][0]}':
+            cost = game.spell.spells_equiped['slot_2'][2]
+            if game.spell.check_mana(game,cost):
+                game.status["current_mana"] -= cost
+                window.close()
+                return event
+            else:
+                sg.popup_no_titlebar('Ei!','Você está sem mana para isso!')
+                window.close()
+            break
+
+        if event == sg.WIN_CLOSED or event == '-None-':
+            window.close()
+            return None
             break
 
 def itens_window(setings,game):
@@ -591,9 +681,12 @@ def char_window(settings,game):
     char_layout = [
         [sg.Text('Personagem!')],
         [sg.HorizontalSeparator()],
+        [sg.Push(),sg.Text(game.path),sg.Push()],
+        [sg.Push(),sg.Text(game.pathdesc()),sg.Push()],
+        [sg.HorizontalSeparator()],
         [sg.Button('Inventário',size=(15,3)),sg.Button('Status',size=(15,3)),sg.Button('Magias',size=(15,3))],
         [sg.HorizontalSeparator()],
-        [sg.Button('Voltar',size=7),sg.Button('Cheats',size=7)],
+        [sg.Button('Voltar',size=7),sg.Push(),sg.Button('Cheats',size=7)],
     ]
 
     window = sg.Window('',char_layout)
@@ -691,9 +784,17 @@ def spell_window(settings,game):
     spell_layout = [
         [sg.Text('Magias!')],
         [sg.HorizontalSeparator()],
-        [],
+        [sg.Text('Spell Slot 01:')],
+        [sg.Text('Spell Name:'),sg.Push(),sg.Text(game.spell.spells_equiped['slot_1'][0])],
+        [sg.Text(game.spell.spells_equiped['slot_1'][1])],
+        [sg.Text(f'Custo: {game.spell.spells_equiped['slot_1'][2]}')],
         [sg.HorizontalSeparator()],
-        [sg.Button('Voltar',size=7)],
+        [sg.Text('Spell Slot 02:')],
+        [sg.Text('Spell Name:'),sg.Push(),sg.Text(game.spell.spells_equiped['slot_2'][0])],
+        [sg.Text(game.spell.spells_equiped['slot_2'][1])],
+        [sg.Text(f'Custo: {game.spell.spells_equiped['slot_2'][2]}')],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Voltar',size=7),sg.Push(),sg.Button('Trocar',size=7)],
     ]
 
     window = sg.Window('',spell_layout)
@@ -703,6 +804,50 @@ def spell_window(settings,game):
         if event == 'Voltar':
             window.close()
             char_window(settings,game)
+            break
+
+        if event == 'Trocar':
+            window.close()
+            change_spells_window(settings,game)
+            break
+
+        if event == sg.WIN_CLOSED:
+            window.close()
+            break
+
+def change_spells_window(settings,game):
+    change_spells_layout = [
+        [sg.Text('Magias!')],
+        [sg.HorizontalSeparator()],
+        [sg.Text('Obtidas:')],
+        [sg.Multiline(size=(15,8),key='Main')],
+        [sg.HorizontalSeparator()],
+        [sg.Text('Escolha:')],
+        [sg.Input(game.spell.spells_equiped['slot_1'][0],key='choice_1',s=15)],
+        [sg.Input(game.spell.spells_equiped['slot_2'][0],key='choice_2',s=15)],
+        [sg.HorizontalSeparator()],
+        [sg.Button('Voltar',size=7),sg.Button('Trocar',size=7)],
+    ]
+
+    window = sg.Window('',change_spells_layout,finalize=True)
+    window["Main"].update(game.spell.read_spells())
+    while True:
+        event, values = window.read()
+
+        if event == 'Trocar':
+            if values["choice_1"] and values["choice_2"] in game.spell.spells_known:
+                game.spell.spells_equiped['slot_1'] = (values["choice_1"], game.spell.get_desc(values["choice_1"]), game.spell.get_cost(values["choice_1"]))
+                game.spell.spells_equiped['slot_2'] = (values["choice_2"], game.spell.get_desc(values["choice_2"]), game.spell.get_cost(values["choice_2"]))
+                sg.popup_no_titlebar('Você trocou para:',f'{values["choice_1"]}',f'{values["choice_2"]}')
+                window.close()
+                main_window(settings,game)
+                break
+            else:
+                sg.popup_no_titlebar('EI!!!','Você não possui essa magia!')
+
+        if event == 'Voltar':
+            window.close()
+            spell_window(settings,game)
             break
 
         if event == sg.WIN_CLOSED:
@@ -777,9 +922,6 @@ def status_window(settings,game):
         [sg.HorizontalSeparator()],
         [sg.Column(master_1),sg.VerticalSeparator(),sg.Column(master_2)],
         [sg.HorizontalSeparator()],
-        [sg.Push(),sg.Text(game.path),sg.Push()],
-        [sg.Push(),sg.Text(game.pathdesc()),sg.Push()],
-        [sg.HorizontalSeparator()],
         [sg.Button('Voltar',size=7)],
     ]
 
@@ -828,7 +970,7 @@ def inventory_window(settings,game):
     ]
 
     itens_2 = [
-        [sg.Text(f'{game.inventory["shard"]}')],
+        [sg.Text(f'{round(game.inventory["shard"],2)}')],
         [sg.Text(f'{game.inventory["revive"]}')],
         [sg.Text(f'{game.inventory["potion"]}')],
         [sg.Text(f'{game.inventory["elixir"]}')],

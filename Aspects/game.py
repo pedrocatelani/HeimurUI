@@ -21,6 +21,7 @@ class Game():
 
     initialized = settings["GAME"]["init"]
     path = ''
+    spell = None
     atributes = {'for': 0,'des': 0,'con': 0,'int': 0,'current_points': 12}
     status = {'max_xp': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'level': 1,'atq': 0,'def': 0,'base_dmg': 0}
     inventory = {'money': 0,'shard': 0,'potion': 5,'elixir': 2,'revive': 1,'eq_weapon': ''}
@@ -112,7 +113,7 @@ class Game():
         self.monster["title"] = self.monsters[f"{mst}"]["title"]
         print(self.monster)
 
-    def get_hp_percent(self,current,total):
+    def get_hp_percent(self,current,total) -> float:
         percent = int(current) / int(total)
         percent *= 100
         percent = round(percent,2)
@@ -219,6 +220,7 @@ class Game():
         print('Shard drop % :',rol)
         if rol <= 20:
             shard = (rd.randint(1,5) * self.monster["mult_shard"])
+            round(shard,2)
         
         if self.check_barriers():
             exp = 0
