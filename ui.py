@@ -542,7 +542,7 @@ def combat_window(settings,game):
                 break
 
         if event == 'Fugir':
-            if game.status["level"] <= 2 or game.scape:
+            if game.status["level"] <= 2 or game.scape(game):
                 window.close()
                 action_window(settings,game)
                 break

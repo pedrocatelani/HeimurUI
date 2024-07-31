@@ -10,6 +10,14 @@ class Game():
 
     region = 'plains'
     regions_to_travel = ['plains']
+    boss_status = {
+        'plains': 0,
+        'viribus': 0,
+        'prljav': 0,
+        'east': 0,
+        'auribus': 0,
+        'nekrigi': 0
+    }
 
     initialized = settings["GAME"]["init"]
     atributes = {'for': 0,'des': 0,'con': 0,'int': 0,'current_points': 12}
@@ -107,8 +115,11 @@ class Game():
         if object.status["level"] < 10:
             bonus = 15 * object.monster["danger_level"]
         
-        rolagem = self.roll(100)
-        if (rolagem + bonus) >= (90 - object.atributes["des"]):
+        rolagem = object.roll(100)
+
+        print('Rolagem: ', rolagem+bonus)
+        print(f'Meta: {95-object.atributes["des"]}')
+        if (rolagem + bonus) >= (95 - object.atributes["des"]):
             return True
         else:
             return False
@@ -174,12 +185,32 @@ class Game():
         
         return weapons_string
 
+    def check_barriers(self)->bool:
+        if self.status["level"] == 15 and self.boss_status["plains"] == 0:
+            return True
+        elif self.status["level"] == 50 and self.boss_status["viribus"] == 0:
+            return True
+        elif self.status["level"] == 70 and self.boss_status["prljav"] == 0:
+            return True
+        elif self.status["level"] == 125 and self.boss_status["east"] == 0:
+            return True
+        elif self.status["level"] == 150 and self.boss_status["auribus"] == 0:
+            return True
+        elif self.status["level"] == 160 and self.boss_status["nekrigi"] == 0:
+            return True
+
     def get_loot(self) -> tuple:
         shard = 0
         money = (rd.randint(1,16) + self.bonus["money"]) * self.monster["mult_money"]
         exp = (rd.randint(1,10) + self.monster["level"]) * self.monster["mult_xp"]
-        if rd.randint(1,100) <= 17:
+        rol = rd.randint(1,100)
+        
+        print('Shard drop % :',rol)
+        if rol <= 20:
             shard = (rd.randint(1,5) * self.monster["mult_shard"])
+        
+        if self.check_barriers():
+            exp = 0
 
         self.inventory["money"] += money    
         self.inventory["shard"] += shard   
@@ -200,7 +231,7 @@ class Game():
         self.status["max_xp"]  = 11 + (self.status["level"] * 3) 
 
     def heal(self,type:str):
-        rol = rd.randint(1,7) * self.bonus["healing"]
+        rol = (rd.randint(1,7) * self.bonus["healing"]) + self.status["level"]
         self.status[f"current_{type}"] += rol
         if self.status[f"current_{type}"] > self.status[f"max_{type}"]:
             self.status[f"current_{type}"] = self.status[f"max_{type}"]
