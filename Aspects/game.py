@@ -10,6 +10,7 @@ class Game():
 
     region = 'plains'
     regions_to_travel = ['plains']
+    boss_next = False
     boss_status = {
         'plains': 0,
         'viribus': 0,
@@ -24,7 +25,7 @@ class Game():
     spell = None
     atributes = {'for': 0,'des': 0,'con': 0,'int': 0,'current_points': 12}
     status = {'max_xp': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'level': 1,'atq': 0,'def': 0,'base_dmg': 0}
-    inventory = {'money': 0,'shard': 0,'potion': 5,'elixir': 2,'revive': 1,'eq_weapon': ''}
+    inventory = {'money': 0,'shard': 0,'potion': 5,'elixir': 2,'revive': 1,'eq_weapon': '','boss_signal': 5}
     materials = {'sticks': 0,'wood': 0,'iron': 0,'stone': 0,'green_herb': 0,'blue_herb': 0,'berries': 0,'strawberries': 0}
     bonus = {'harvest': 1,'healing': 1,'atq': 0,'def': 0,'money': 0}
     monster = {'name':'','max_hp': 0,'current_hp': 0,'def': 0,'atq': 0,'dmg': 0,'level': 0,'special': 0,'super_special': 0,'mult_money': 0,'mult_xp': 0,'mult_shard': 0,'danger_level': 0,'title': ''}
@@ -95,8 +96,12 @@ class Game():
             monster_level = 1
         return monster_level
 
-    def get_monster(self,local):
+    def get_monster(self,local:str):
         mst = rd.choice(self.monsters["LIST"][f'{local}'].split("|"))
+        if self.boss_next:
+            mst = f'{self.region.capitalize()}Boss'
+            self.boss_next = False
+
         self.monster["name"] = mst
         self.monster["level"] = self.get_monster_level()
         self.monster["danger_level"] = int(self.monsters[f"{mst}"]["danger"])
@@ -151,13 +156,13 @@ class Game():
         #Basic Weapons
 
         if weapon == 'Sword':
-            self.status["atq"] = self.atributes["des"] / 2
+            self.status["atq"] = (self.atributes["des"] / 2) + (self.status["level"] / 4)
             self.status["def"] = self.atributes["con"] / 2
             self.status["base_dmg"] = self.atributes["for"] / 2
         elif weapon == 'Lance':
             self.status["atq"] = self.atributes["des"] / 2
             self.status["def"] = (self.atributes["con"] / 4) + (self.atributes["des"]/4)
-            self.status["base_dmg"] = (self.atributes["for"] / 4) + (self.atributes["des"]/4)
+            self.status["base_dmg"] = (self.atributes["for"] / 4) + (self.atributes["des"]/4) + (self.status["level"] / 4)
         elif weapon == 'Bow':
             self.status["atq"] = (self.atributes["des"] / 4) + (self.status["level"] / 4)
             self.status["def"] = (self.atributes["con"] / 4) + (self.atributes["des"]/4)
@@ -217,12 +222,26 @@ class Game():
         exp = (rd.randint(1,10) + self.monster["level"]) * self.monster["mult_xp"]
         rol = rd.randint(1,100)
 
+        if self.monster["title"] == 'Mini Boss':
+            print('Mini Boss Killed')
+            signal = rd.randint(1,100)
+            print(signal)
+            if signal <= 99:
+                self.inventory["boss_signal"] += 1
+
+        if self.monster["title"] == 'Boss':
+            self.boss_status[self.region] = 1
+
         print('Shard drop % :',rol)
         if rol <= 20:
             shard = (rd.randint(1,5) * self.monster["mult_shard"])
             round(shard,2)
         
         if self.check_barriers():
+            exp = 0
+
+        #Travas de nivel
+        if self.status["level"] >= 15 and self.boss_status["plains"] == 0:
             exp = 0
 
         self.inventory["money"] += money    

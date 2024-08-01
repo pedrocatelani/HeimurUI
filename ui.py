@@ -281,7 +281,7 @@ def action_window(settings,game):
                     ctrl = True
                     game.comput_xp()
                 else:
-                    if game.status["level"] == 5 and ('Fast Trigger' not in game.spell.spells_known or 'Zap' not in game.spell.spells_known or 'Charge' not in game.spell.spells_known):
+                    if game.status["level"] == 5 and ('Fast Trigger' not in game.spell.spells_known and 'Zap' not in game.spell.spells_known and 'Charge' not in game.spell.spells_known):
                         sg.popup_no_titlebar('Você aprendeu uma magia nova!')
                         if game.path == 'Ranger':
                             game.spell.spells_known.append('Fast Trigger')
@@ -519,7 +519,7 @@ def combat_window(settings,game):
                 drop_loot()
 
         elif spell == 'Charge':
-            turno_player(10)
+            turno_player(game.status["level"]*2)
             if game.monster["current_hp"] > 0:
                 turno_inimigo()
             else:
@@ -620,7 +620,8 @@ def use_spells_window(settings,game) -> str:
     ]
 
     window = sg.Window('', use_spells_layout)
-    while True:
+    ctrl = True
+    while ctrl:
         event, values = window.read()
         print(event)
 
@@ -629,34 +630,37 @@ def use_spells_window(settings,game) -> str:
             if game.spell.check_mana(game,cost):
                 game.status["current_mana"] -= cost
                 window.close()
+                ctrl = False
                 return event
             else:
                 sg.popup_no_titlebar('Ei!','Você está sem mana para isso!')
                 window.close()
-            break
+                break
 
         if event == f'{game.spell.spells_equiped['slot_2'][0]}':
             cost = game.spell.spells_equiped['slot_2'][2]
             if game.spell.check_mana(game,cost):
                 game.status["current_mana"] -= cost
                 window.close()
+                ctrl = False
                 return event
             else:
                 sg.popup_no_titlebar('Ei!','Você está sem mana para isso!')
                 window.close()
-            break
+                break
 
         if event == sg.WIN_CLOSED or event == '-None-':
             window.close()
+            ctrl = False
             return None
-            break
 
 def itens_window(setings,game):
     itens_layout = [
         [sg.Text('Itens na bolsa')],
         [sg.HorizontalSeparator()],
-        [sg.Button('Potion',size=(15,1))],
-        [sg.Button('Elixir', size=(15,1))],
+        [sg.Button('Potion',size=(15,1)),sg.Text(game.inventory["potion"])],
+        [sg.Button('Elixir', size=(15,1)),sg.Text(game.inventory["elixir"])],
+        [sg.Button('Boss Signal', size=(15,1)),sg.Text(game.inventory["boss_signal"])],
         [sg.HorizontalSeparator()],
         [sg.Push(),sg.Button('Fechar', size=(10,1))],
     ]
@@ -679,11 +683,26 @@ def itens_window(setings,game):
                 game.inventory["elixir"] -= 1
                 game.heal('mana')
 
+        if event == 'Boss Signal':
+            if game.inventory["boss_signal"] >= 5:
+                game.inventory["boss_signal"] -= 5
+                game.boss_next = True
+                sg.popup_no_titlebar('Você jogou o sinalizador...','Ele está a caminho.')
+            else:
+                sg.popup_no_titlebar('É Necessário 5 Sinalizadores','para convocar o Boss.','Obtenha mais derrotando Mini Bosses!')
+            window.close()
+            break
+
+        if event == sg.WINDOW_CLOSED:
+            window.close()
+            break
+
         if event:
             window.close()
             if event in ['Elixir']:
                 return True
-            break
+            else:
+                break
 
 def char_window(settings,game):
     char_layout = [
@@ -975,6 +994,7 @@ def inventory_window(settings,game):
         [sg.Text('Revives')],
         [sg.Text('Poção')],
         [sg.Text('Elixir')],
+        [sg.Text('Boss Signal')],
     ]
 
     itens_2 = [
@@ -982,6 +1002,7 @@ def inventory_window(settings,game):
         [sg.Text(f'{game.inventory["revive"]}')],
         [sg.Text(f'{game.inventory["potion"]}')],
         [sg.Text(f'{game.inventory["elixir"]}')],
+        [sg.Text(f'{game.inventory["boss_signal"]}')],
     ]
 
     master_1 = [
