@@ -507,6 +507,9 @@ def combat_window(settings,game):
         loot = game.get_loot()
         window.close()
         sg.popup_no_titlebar('Você recebeu:',f'{loot[0]} H$',f'{loot[1]} XP',f'{loot[2]} Fragmentos')
+        if game.monster["title"] == "Boss":
+            boss_loot = game.get_boss_drop(game.monster["name"])
+            sg.popup_no_titlebar('Parabéns pela vitória!','Uma nova região foi liberada.',f'Você conseguiu: {boss_loot}!!!')
         main_window(settings,game)
         
     def filter_effects(spell):

@@ -25,7 +25,7 @@ class Game():
     spell = None
     atributes = {'for': 0,'des': 0,'con': 0,'int': 0,'current_points': 12}
     status = {'max_xp': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'level': 1,'atq': 0,'def': 0,'base_dmg': 0}
-    inventory = {'money': 0,'shard': 0,'potion': 5,'elixir': 2,'revive': 1,'eq_weapon': '','boss_signal': 5}
+    inventory = {'money': 0,'shard': 0,'potion': 5,'elixir': 2,'revive': 1,'eq_weapon': '','boss_signal': 50}
     materials = {'sticks': 0,'wood': 0,'iron': 0,'stone': 0,'green_herb': 0,'blue_herb': 0,'berries': 0,'strawberries': 0}
     bonus = {'harvest': 1,'healing': 1,'atq': 0,'def': 0,'money': 0}
     monster = {'name':'','max_hp': 0,'current_hp': 0,'def': 0,'atq': 0,'dmg': 0,'level': 0,'special': 0,'super_special': 0,'mult_money': 0,'mult_xp': 0,'mult_shard': 0,'danger_level': 0,'title': ''}
@@ -189,7 +189,7 @@ class Game():
         elif weapon == 'Riffle':
             self.status["atq"] = (self.atributes["des"]/2) + (self.status["level"]/4)
             self.status["def"] = self.atributes["con"]/2
-            self.status["base_dmg"] = (self.atributes["des"]/4) + (self.status["level"]/2)
+            self.status["base_dmg"] = (self.atributes["des"]/2) + (self.status["level"]/4)
         elif weapon == 'Wand':
             self.status["atq"] = self.atributes["des"]/2
             self.status["def"] = self.atributes["con"]/2
@@ -226,7 +226,7 @@ class Game():
             print('Mini Boss Killed')
             signal = rd.randint(1,100)
             print(signal)
-            if signal <= 99:
+            if signal <= 40:
                 self.inventory["boss_signal"] += 1
 
         if self.monster["title"] == 'Boss':
@@ -255,6 +255,46 @@ class Game():
             self.heal('hp')
 
         return (money,exp,shard)
+
+    def get_boss_drop(self,name:str) -> str:
+        drop_pool = []
+        ranger_drops = {
+            'spell':['Fireworks'],
+            'weapon':['Riffle']
+            }
+        warrior_drops = {
+            'spell':['Rebuke'],
+            'weapon':['Great Sword']
+            }
+        mage_drops = {
+            'spell':['Fireworks'],
+            'weapon':['Riffle']
+            }
+
+        if name == 'PlainsBoss':
+            drop_pool =  ['Fireworks', 'Rebuke', 'Heal', 'Great Sword', 'Riffle', 'Wand']
+            
+        loot = rd.choice(drop_pool)
+        if self.path == 'Ranger' and loot in ranger_drops['spell']:
+            if loot not in self.spell.spells_known:
+                self.spell.spells_known.append(loot)
+        elif self.path == 'Ranger' and loot in ranger_drops['weapon']:
+            if loot not in self.weapons:
+                self.weapons.append(loot)
+        if self.path == 'Mago' and loot in mage_drops['spell']:
+            if loot not in self.spell.spells_known:
+                self.spell.spells_known.append(loot)
+        elif self.path == 'Mago' and loot in mage_drops['weapon']:
+            if loot not in self.weapons:
+                self.weapons.append(loot)
+        if self.path == 'Guerreiro' and loot in warrior_drops['spell']:
+            if loot not in self.spell.spells_known:
+                self.spell.spells_known.append(loot)
+        elif self.path == 'Guerreiro' and loot in warrior_drops['weapon']:
+            if loot not in self.weapons:
+                self.weapons.append(loot)
+
+        return loot
 
     def check_xp(self) -> bool:
         if self.status["current_xp"] >= self.status["max_xp"]:
