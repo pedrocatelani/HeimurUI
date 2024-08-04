@@ -323,6 +323,7 @@ def action_window(settings,game):
             break
 
 def travel_window(settings,game):
+
     travel_layout = [
         [sg.Push(),sg.Text('Regiões de Heimur!'),sg.Push()],
         [sg.HorizontalSeparator()],
@@ -657,7 +658,7 @@ def use_spells_window(settings,game) -> str:
             ctrl = False
             return None
 
-def itens_window(setings,game):
+def itens_window(settings,game):
     itens_layout = [
         [sg.Text('Itens na bolsa')],
         [sg.HorizontalSeparator()],

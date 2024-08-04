@@ -25,7 +25,7 @@ class Game():
     spell = None
     atributes = {'for': 0,'des': 0,'con': 0,'int': 0,'current_points': 12}
     status = {'max_xp': 0,'current_xp': 0,'max_hp': 0,'current_hp': 0,'max_mana': 0,'current_mana': 0,'level': 1,'atq': 0,'def': 0,'base_dmg': 0}
-    inventory = {'money': 0,'shard': 0,'potion': 5,'elixir': 2,'revive': 1,'eq_weapon': '','boss_signal': 50}
+    inventory = {'money': 0,'shard': 0,'potion': 5,'elixir': 2,'revive': 1,'eq_weapon': '','boss_signal': 5}
     materials = {'sticks': 0,'wood': 0,'iron': 0,'stone': 0,'green_herb': 0,'blue_herb': 0,'berries': 0,'strawberries': 0}
     bonus = {'harvest': 1,'healing': 1,'atq': 0,'def': 0,'money': 0}
     monster = {'name':'','max_hp': 0,'current_hp': 0,'def': 0,'atq': 0,'dmg': 0,'level': 0,'special': 0,'super_special': 0,'mult_money': 0,'mult_xp': 0,'mult_shard': 0,'danger_level': 0,'title': ''}
@@ -90,7 +90,7 @@ class Game():
         self.materials[f"{resource}"] += qnt
         return [resource,qnt]
     
-    def get_monster_level(self):
+    def get_monster_level(self) -> int:
         monster_level = rd.randint((self.status["level"]- 3),(self.status["level"]+ 3))
         if monster_level < 1 or self.status["level"] == 1:
             monster_level = 1
@@ -183,12 +183,12 @@ class Game():
         #Plain Weapons
 
         elif weapon == 'Great Sword':
-            self.status["atq"] = self.atributes["for"] /2
-            self.status["def"] = (self.atributes["con"]/4) + (self.atributes["for"]/4)
+            self.status["atq"] = self.atributes["for"] / 2
+            self.status["def"] = (self.atributes["con"]/4) + (self.atributes["for"]/2)
             self.status["base_dmg"] = self.atributes["for"] / 2
         elif weapon == 'Riffle':
             self.status["atq"] = (self.atributes["des"]/2) + (self.status["level"]/4)
-            self.status["def"] = self.atributes["con"]/2
+            self.status["def"] = (self.atributes["con"]/2) + (self.status["des"]/4)
             self.status["base_dmg"] = (self.atributes["des"]/2) + (self.status["level"]/4)
         elif weapon == 'Wand':
             self.status["atq"] = self.atributes["des"]/2
@@ -267,12 +267,18 @@ class Game():
             'weapon':['Great Sword']
             }
         mage_drops = {
-            'spell':['Fireworks'],
-            'weapon':['Riffle']
+            'spell':['Heal'],
+            'weapon':['Wand']
             }
 
         if name == 'PlainsBoss':
             drop_pool =  ['Fireworks', 'Rebuke', 'Heal', 'Great Sword', 'Riffle', 'Wand']
+            if 'viribus' not in self.regions_to_travel:
+                self.regions_to_travel.append('viribus')
+        elif name == 'ViribusBoss':
+            drop_pool = []
+            if 'prljav' not in self.regions_to_travel:
+                self.regions_to_travel.append('prljav')
             
         loot = rd.choice(drop_pool)
         if self.path == 'Ranger' and loot in ranger_drops['spell']:
