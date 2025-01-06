@@ -578,18 +578,18 @@ def harvest_window(settings, game):
 
 def combat_window(settings, game):
 
-    def turno_player(temp_bonus=0):
+    def turno_player(temp_atk_bonus=0, temp_dmg_bonus=0):
         rolagem = game.roll(20)
         window["ROL"].update(rolagem)
-        ataque = rolagem + game.status["atq"] + game.bonus["atq"] + temp_bonus
+        ataque = rolagem + game.status["atq"] + game.bonus["atq"] + temp_atk_bonus
         defesa = game.roll(20) + game.monster["def"]
         pt_crit = defesa + 15
         if ataque >= pt_crit:
             sg.popup_no_titlebar("Você Acertou um Crítico!!!")
-            dano = 2 * (game.status["level"] + game.status["base_dmg"])
+            dano = 2 * (game.status["level"] + game.status["base_dmg"] + temp_dmg_bonus)
         elif ataque > defesa:
             sg.popup_no_titlebar("Você Acertou o Ataque!")
-            dano = game.roll(game.status["level"]) + game.status["base_dmg"]
+            dano = game.roll(game.status["level"]) + game.status["base_dmg"] + temp_dmg_bonus
         else:
             sg.popup_no_titlebar("Você Errou o Ataque!")
             dano = 0
@@ -652,6 +652,26 @@ def combat_window(settings, game):
             else:
                 drop_loot()
 
+        elif spell == "Rebuke":
+            dano = game.status["base_dmg"] * game.roll(4)
+            heal = game.status["level"] + game.atributes["int"]
+            game.heal("hp", heal)
+            window["perplayer"].update(
+                f'{game.get_hp_percent(game.status["current_hp"],game.status["max_hp"])}%'
+            )
+            sg.popup_no_titlebar("Você invocou a Retribuição!",f"{heal} Pontos de vida curados.")
+
+            game.monster["current_hp"] -= dano
+            window["dmg c"].update(dano)
+            window["permonster"].update(
+                f'{game.get_hp_percent(game.monster["current_hp"],game.monster["max_hp"])}%'
+            )
+            
+            if game.monster["current_hp"] > 0:
+                turno_inimigo()
+            else:
+                drop_loot()
+
         elif spell == "Zap":
             dano = game.status["level"] * game.roll(8)
             sg.popup_no_titlebar("Você conjurou Zap!")
@@ -661,6 +681,21 @@ def combat_window(settings, game):
             window["permonster"].update(
                 f'{game.get_hp_percent(game.monster["current_hp"],game.monster["max_hp"])}%'
             )
+
+        elif spell == "Heal":
+            heal = (game.atributes["int"] - game.atributes["con"]) * game.rol(5)
+            window["perplayer"].update(
+                f'{game.get_hp_percent(game.status["current_hp"],game.status["max_hp"])}%'
+            )
+            game.heal("hp")
+            sg.popup_no_titlebar("Você cura suas feridas utilizando sua magia!",f"{heal} pontos curados!")
+
+        elif spell == "Fireworks":
+            turno_player(game.atributes["des"], 3 * game.roll(10))
+            if game.monster["current_hp"] > 0:
+                turno_inimigo()
+            else:
+                drop_loot()
 
     game.get_monster(game.region)
 

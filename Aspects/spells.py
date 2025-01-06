@@ -6,6 +6,16 @@ class Spells:
         "slot_2": ("-None-", "No Description", 0),
     }
 
+    spells = [
+        ["-None-", 0, "No Description"],
+        ["Fast Trigger", 2, "Atire duas vezes seguidas!"],
+        ["Charge", 3.5, "Perfome um ataque com bônus."],
+        ["Zap", 6, "Pule o turno do inimigo, eletrucutando-o"],
+        ["Fireworks", 10, "Um último 'tchau tchau'!"],
+        ["Rebuke", 10, "Cure-se um pouco enquanto ataca."],
+        ["Heal", 15, "Revitalizar-se."],
+    ]
+
     def read_spells(self) -> str:
         spells_string = ""
         for spell in self.spells_known:
@@ -14,24 +24,14 @@ class Spells:
         return spells_string
 
     def get_desc(self, spell_name: str) -> str:
-        if spell_name == "-None-":
-            return "No Description"
-        elif spell_name == "Fast Trigger":
-            return "Atire duas vezes seguidas!"
-        elif spell_name == "Charge":
-            return "Performe um ataque com bônus."
-        elif spell_name == "Zap":
-            return "Pule o turno do inimigo, eletrucutando-o"
+        for spell in self.spells:
+            if spell[0] == spell_name:
+                return spell[2]
 
     def get_cost(self, spell_name: str) -> float:
-        if spell_name == "-None-":
-            return 0
-        elif spell_name == "Fast Trigger":
-            return 2
-        elif spell_name == "Charge":
-            return 3.5
-        elif spell_name == "Zap":
-            return 5
+        for spell in self.spells:
+            if spell[0] == spell_name:
+                return spell[1]
 
     def check_mana(self, game: object, cost: float) -> bool:
         if game.status["current_mana"] >= cost:

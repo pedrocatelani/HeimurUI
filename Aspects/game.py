@@ -3,6 +3,10 @@ from configparser import ConfigParser
 
 
 class Game:
+    regions_value = [
+        ["plains", 1],
+        ["viribus", 2]
+    ]
 
     settings = ConfigParser()
     settings.read("_internal/config.ini")
@@ -43,7 +47,7 @@ class Game:
         "elixir": 2,
         "revive": 1,
         "eq_weapon": "",
-        "boss_signal": 5,
+        "boss_signal": 0,
     }
     materials = {
         "sticks": 0,
@@ -311,14 +315,20 @@ class Game:
         rol = rd.randint(1, 100)
 
         if self.monster["title"] == "Mini Boss":
+            bonus = 0
+            for region in self.regions_value:
+                if region[0] == self.region:
+                    if region[1] < len(self.regions_to_travel):
+                        bonus = 30
+
             print("Mini Boss Killed")
             signal = rd.randint(1, 100)
             print(signal)
-            if signal <= 40:
+            if signal <= 60 + bonus:
                 self.inventory["boss_signal"] += 1
 
         if self.monster["title"] == "Boss":
-            self.boss_status[self.region] = 1
+            self.boss_status[self.region] += 1
 
         print("Shard drop % :", rol)
         if rol <= 20:
@@ -346,36 +356,47 @@ class Game:
 
     def get_boss_drop(self, name: str) -> str:
         drop_pool = []
-        ranger_drops = {"spell": ["Fireworks"], "weapon": ["Riffle"]}
-        warrior_drops = {"spell": ["Rebuke"], "weapon": ["Great Sword"]}
-        mage_drops = {"spell": ["Heal"], "weapon": ["Wand"]}
+        ctrl = True
+        self.ranger_drops = {"spell": ["Fireworks"], "weapon": ["Riffle"]}
+        self.warrior_drops = {"spell": ["Rebuke"], "weapon": ["Great Sword"]}
+        self.mage_drops = {"spell": ["Heal"], "weapon": ["Wand"]}
 
         if name == "PlainsBoss":
+            boss = "plains"
             drop_pool = ["Fireworks", "Rebuke", "Heal", "Great Sword", "Riffle", "Wand"]
             if "viribus" not in self.regions_to_travel:
                 self.regions_to_travel.append("viribus")
         elif name == "ViribusBoss":
+            boss = "viribus"
             drop_pool = []
             if "prljav" not in self.regions_to_travel:
                 self.regions_to_travel.append("prljav")
 
         loot = rd.choice(drop_pool)
-        if self.path == "Ranger" and loot in ranger_drops["spell"]:
+        drops = getattr(self,f"{self.path.lower()}_drops")
+        while ctrl:
+            print(loot)
+            if self.boss_status[boss] >= 3 and (loot not in drops["spell"] or loot not in drops["weapon"]):
+                loot = rd.choice(drop_pool)
+            else:
+                ctrl = False
+
+        if self.path == "Ranger" and loot in self.ranger_drops["spell"]:
             if loot not in self.spell.spells_known:
                 self.spell.spells_known.append(loot)
-        elif self.path == "Ranger" and loot in ranger_drops["weapon"]:
+        elif self.path == "Ranger" and loot in self.ranger_drops["weapon"]:
             if loot not in self.weapons:
                 self.weapons.append(loot)
-        if self.path == "Mago" and loot in mage_drops["spell"]:
+        if self.path == "Mago" and loot in self.mage_drops["spell"]:
             if loot not in self.spell.spells_known:
                 self.spell.spells_known.append(loot)
-        elif self.path == "Mago" and loot in mage_drops["weapon"]:
+        elif self.path == "Mago" and loot in self.mage_drops["weapon"]:
             if loot not in self.weapons:
                 self.weapons.append(loot)
-        if self.path == "Guerreiro" and loot in warrior_drops["spell"]:
+        if self.path == "Guerreiro" and loot in self.warrior_drops["spell"]:
             if loot not in self.spell.spells_known:
                 self.spell.spells_known.append(loot)
-        elif self.path == "Guerreiro" and loot in warrior_drops["weapon"]:
+        elif self.path == "Guerreiro" and loot in self.warrior_drops["weapon"]:
             if loot not in self.weapons:
                 self.weapons.append(loot)
 
@@ -393,9 +414,10 @@ class Game:
         self.atributes["current_points"] += 3
         self.status["max_xp"] = 11 + (self.status["level"] * 3)
 
-    def heal(self, type: str):
-        rol = (rd.randint(1, 7) * self.bonus["healing"]) + self.status["level"]
-        self.status[f"current_{type}"] += rol
+    def heal(self, type: str, mod: float = None):
+        if not mod:
+            mod = (rd.randint(1, 7) * self.bonus["healing"]) + self.status["level"]
+        self.status[f"current_{type}"] += mod
         if self.status[f"current_{type}"] > self.status[f"max_{type}"]:
             self.status[f"current_{type}"] = self.status[f"max_{type}"]
 
