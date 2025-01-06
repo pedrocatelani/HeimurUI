@@ -373,6 +373,7 @@ class Game:
 
         loot = rd.choice(drop_pool)
         drops = getattr(self, f"{self.path.lower()}_drops")
+        print("CHEGUEI AQUI")
         while ctrl:
             print(drops)
             print(loot)
