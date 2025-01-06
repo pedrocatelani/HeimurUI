@@ -1559,11 +1559,11 @@ def load_window(settings, game, back: str):
 
         if event in ["Slot 1", "Slot 2", "Slot 3", "Slot 4"]:
             num = int(event[5])
-            try:
-                game.read_save(num)
-                return_load(num)
-            except:
-                fail_load(num, back)
+            # try:
+            game.read_save(num)
+            return_load(num)
+            # except:
+            #     fail_load(num, back)
             break
 
         if event == "Voltar":

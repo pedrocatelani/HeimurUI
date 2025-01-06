@@ -3,10 +3,7 @@ from configparser import ConfigParser
 
 
 class Game:
-    regions_value = [
-        ["plains", 1],
-        ["viribus", 2]
-    ]
+    regions_value = [["plains", 1], ["viribus", 2]]
 
     settings = ConfigParser()
     settings.read("_internal/config.ini")
@@ -231,7 +228,7 @@ class Game:
             self.status["base_dmg"] = (
                 (self.atributes["for"] / 4)
                 + (self.atributes["des"] / 4)
-                + (self.status["level"] / 4)
+                + (self.status["level"] / 2)
             )
         elif weapon == "Bow":
             self.status["atq"] = (self.atributes["des"] / 4) + (
@@ -276,7 +273,9 @@ class Game:
             self.status["atq"] = (self.atributes["des"] / 2) + (
                 self.status["level"] / 4
             )
-            self.status["def"] = (self.atributes["con"] / 2) + (self.status["des"] / 4)
+            self.status["def"] = (self.atributes["con"] / 2) + (
+                self.atributes["des"] / 4
+            )
             self.status["base_dmg"] = (self.atributes["des"] / 2) + (
                 self.status["level"] / 4
             )
@@ -373,10 +372,13 @@ class Game:
                 self.regions_to_travel.append("prljav")
 
         loot = rd.choice(drop_pool)
-        drops = getattr(self,f"{self.path.lower()}_drops")
+        drops = getattr(self, f"{self.path.lower()}_drops")
         while ctrl:
+            print(drops)
             print(loot)
-            if self.boss_status[boss] >= 3 and (loot not in drops["spell"] or loot not in drops["weapon"]):
+            if self.boss_status[boss] >= 3 and (
+                loot not in drops["spell"] and loot not in drops["weapon"]
+            ):
                 loot = rd.choice(drop_pool)
             else:
                 ctrl = False
