@@ -2,3 +2,7 @@ venv*
 __pycache__*
 meta.txt
 test.py
+_internal/saves/save1.json
+_internal/saves/save2.json
+_internal/saves/save3.json
+_internal/saves/save4.json
