@@ -1,5 +1,6 @@
 import random as rd
 from configparser import ConfigParser
+from datetime import datetime, timedelta
 
 
 class Game:
@@ -9,6 +10,8 @@ class Game:
     settings.read("_internal/config.ini")
     monsters = ConfigParser()
     monsters.read("_internal/monsters.ini")
+
+    time_stamp = datetime.now()
 
     region = "plains"
     regions_to_travel = ["plains"]
@@ -78,6 +81,15 @@ class Game:
     weapons = []
 
     from .saves import write_save, read_save
+
+    def time_refresh(self) -> bool:
+        stamp = datetime.now()
+        if stamp >= (self.time_stamp + timedelta(0,20.0)):
+            print(stamp, self.time_stamp)
+            self.time_stamp = datetime.now()
+            return True
+        else:
+            return False
 
     def pathdesc(self) -> str:
         if self.path == "Ranger":
@@ -226,9 +238,9 @@ class Game:
                 self.atributes["des"] / 4
             )
             self.status["base_dmg"] = (
-                (self.atributes["for"] / 4)
+                (self.atributes["for"] / 2)
                 + (self.atributes["des"] / 4)
-                + (self.status["level"] / 2)
+                + (self.status["level"] / 4)
             )
         elif weapon == "Bow":
             self.status["atq"] = (self.atributes["des"] / 4) + (
@@ -268,7 +280,7 @@ class Game:
             self.status["def"] = (self.atributes["con"] / 4) + (
                 self.atributes["for"] / 2
             )
-            self.status["base_dmg"] = self.atributes["for"] / 2
+            self.status["base_dmg"] = self.atributes["for"] / 2 + (self.atributes["con"] / 4)
         elif weapon == "Riffle":
             self.status["atq"] = (self.atributes["des"] / 2) + (
                 self.status["level"] / 4
@@ -357,8 +369,8 @@ class Game:
         drop_pool = []
         ctrl = True
         self.ranger_drops = {"spell": ["Fireworks"], "weapon": ["Riffle"]}
-        self.warrior_drops = {"spell": ["Rebuke"], "weapon": ["Great Sword"]}
-        self.mage_drops = {"spell": ["Heal"], "weapon": ["Wand"]}
+        self.guerreiro_drops = {"spell": ["Rebuke"], "weapon": ["Great Sword"]}
+        self.mago_drops = {"spell": ["Heal"], "weapon": ["Wand"]}
 
         if name == "PlainsBoss":
             boss = "plains"
@@ -373,10 +385,7 @@ class Game:
 
         loot = rd.choice(drop_pool)
         drops = getattr(self, f"{self.path.lower()}_drops")
-        print("CHEGUEI AQUI")
         while ctrl:
-            print(drops)
-            print(loot)
             if self.boss_status[boss] >= 3 and (
                 loot not in drops["spell"] and loot not in drops["weapon"]
             ):
@@ -390,16 +399,16 @@ class Game:
         elif self.path == "Ranger" and loot in self.ranger_drops["weapon"]:
             if loot not in self.weapons:
                 self.weapons.append(loot)
-        if self.path == "Mago" and loot in self.mage_drops["spell"]:
+        if self.path == "Mago" and loot in self.mago_drops["spell"]:
             if loot not in self.spell.spells_known:
                 self.spell.spells_known.append(loot)
-        elif self.path == "Mago" and loot in self.mage_drops["weapon"]:
+        elif self.path == "Mago" and loot in self.mago_drops["weapon"]:
             if loot not in self.weapons:
                 self.weapons.append(loot)
-        if self.path == "Guerreiro" and loot in self.warrior_drops["spell"]:
+        if self.path == "Guerreiro" and loot in self.guerreiro_drops["spell"]:
             if loot not in self.spell.spells_known:
                 self.spell.spells_known.append(loot)
-        elif self.path == "Guerreiro" and loot in self.warrior_drops["weapon"]:
+        elif self.path == "Guerreiro" and loot in self.guerreiro_drops["weapon"]:
             if loot not in self.weapons:
                 self.weapons.append(loot)
 

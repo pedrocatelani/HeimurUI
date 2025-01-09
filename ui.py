@@ -149,6 +149,10 @@ def settings_window(settings, game):
 
 def main_window(settings, game):
 
+    if game.time_refresh():
+        game.write_save("auto")
+        print("autosave")
+            
     menu_bar_definition = [["Menu", ["Configurações", "Sobre", "Save", "Load"]]]
 
     layout_main = [
@@ -691,7 +695,7 @@ def combat_window(settings, game):
             sg.popup_no_titlebar("Você cura suas feridas utilizando sua magia!",f"{heal} pontos curados!")
 
         elif spell == "Fireworks":
-            turno_player(game.atributes["des"], 3 * game.roll(10))
+            turno_player(game.atributes["des"] / 4, 3 * game.roll(10))
             if game.monster["current_hp"] > 0:
                 turno_inimigo()
             else:
@@ -1446,6 +1450,21 @@ def starter_window(settings, game):
 
 def welcome_window(settings, game):
 
+    def fail_load(num, back):
+        window.close()
+        sg.popup_no_titlebar(
+            "Ei!", "Impossível carregar!", f"Não existe dado salvo no slot {num}"
+        )
+        if back == "welcome":
+            welcome_window(settings, game)
+        elif back == "main":
+            main_window(settings, game)
+
+    def return_load(num):
+        window.close()
+        sg.popup_no_titlebar("Certo!", f"Carregando progresso do slot {num}...")
+        main_window(settings, game)
+
     layout_welcome = [
         [
             sg.Push(),
@@ -1460,6 +1479,7 @@ def welcome_window(settings, game):
         [sg.HorizontalSeparator()],
         [sg.Push(), sg.Button("Novo Jogo", size=(20, 2)), sg.Push()],
         [sg.Push(), sg.Button("Carregar Jogo", size=(20, 2)), sg.Push()],
+        [sg.Push(), sg.Button("Continuar", size=(20, 2)), sg.Push()],
         [sg.HorizontalSeparator()],
         [sg.Text("@catelanirocha   2024")],
     ]
@@ -1471,6 +1491,14 @@ def welcome_window(settings, game):
         if event == "Carregar Jogo":
             window.close()
             load_window(settings, game, "welcome")
+            break
+
+        if event == "Continuar":
+            try:
+                game.read_save("auto")
+                return_load("automático")
+            except:
+                fail_load("automático", "welcome")
             break
 
         elif event == "Novo Jogo":
@@ -1538,7 +1566,7 @@ def load_window(settings, game, back: str):
         ],
         [
             sg.Push(),
-            sg.Text("Selecione o slot de salvamento...", justification="center"),
+            sg.Text("Carregar Jogo", justification="center"),
             sg.Push(),
         ],
         [sg.HorizontalSeparator()],
@@ -1624,7 +1652,7 @@ def save_window(settings, game):
         ],
         [
             sg.Push(),
-            sg.Text("Selecione o slot de salvamento...", justification="center"),
+            sg.Text("Salvar Jogo", justification="center"),
             sg.Push(),
         ],
         [sg.HorizontalSeparator()],
