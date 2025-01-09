@@ -910,6 +910,8 @@ def itens_window(settings, game):
             if game.inventory["boss_signal"] >= 5:
                 game.inventory["boss_signal"] -= 5
                 game.boss_next = True
+                if game.monster["name"] in ["Boar"]:
+                    game.special_boss = game.monster["name"]
                 sg.popup_no_titlebar(
                     "Você jogou o sinalizador...", "Ele está a caminho."
                 )
@@ -1587,11 +1589,11 @@ def load_window(settings, game, back: str):
 
         if event in ["Slot 1", "Slot 2", "Slot 3", "Slot 4"]:
             num = int(event[5])
-            try:
-                game.read_save(num)
-                return_load(num)
-            except:
-                fail_load(num, back)
+            # try:
+            game.read_save(num)
+            return_load(num)
+            # except:
+            #     fail_load(num, back)
             break
 
         if event == "Voltar":

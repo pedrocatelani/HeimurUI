@@ -8,6 +8,7 @@ def write_save(self, num: int):
         "region": self.region,
         "regions_to_travel": self.regions_to_travel,
         "boss_next": self.boss_next,
+        "special_boss": self.special_boss,
         "boss_status": self.boss_status,
         "status": self.status,
         "inventory": self.inventory,
@@ -38,6 +39,7 @@ def read_save(self, num: int):
         self.region = save_data["region"]
         self.regions_to_travel = save_data["regions_to_travel"]
         self.boss_next = save_data["boss_next"]
+        self.special_boss = save_data["special_boss"]
         self.boss_status = save_data["boss_status"]
         self.status = save_data["status"]
         self.inventory = save_data["inventory"]

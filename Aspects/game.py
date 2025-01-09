@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 
 class Game:
-    regions_value = [["plains", 1], ["viribus", 2]]
+    regions_value = [["plains", 1], ["viribus", 2], ["prljav", 3]]
 
     settings = ConfigParser()
     settings.read("_internal/config.ini")
@@ -16,7 +16,9 @@ class Game:
     region = "plains"
     regions_to_travel = ["plains"]
     boss_next = False
+    special_boss = None
     boss_status = {
+        "boar": 0,
         "plains": 0,
         "viribus": 0,
         "prljav": 0,
@@ -84,7 +86,7 @@ class Game:
 
     def time_refresh(self) -> bool:
         stamp = datetime.now()
-        if stamp >= (self.time_stamp + timedelta(0,20.0)):
+        if stamp >= (self.time_stamp + timedelta(0, 20.0)):
             print(stamp, self.time_stamp)
             self.time_stamp = datetime.now()
             return True
@@ -164,7 +166,11 @@ class Game:
     def get_monster(self, local: str):
         mst = rd.choice(self.monsters["LIST"][f"{local}"].split("|"))
         if self.boss_next:
-            mst = f"{self.region.capitalize()}Boss"
+            if not self.special_boss:
+                mst = f"{self.region.capitalize()}Boss"
+            else:
+                mst = f"{self.special_boss.capitalize()}Boss"
+                self.special_boss = None
             self.boss_next = False
 
         self.monster["name"] = mst
@@ -280,7 +286,9 @@ class Game:
             self.status["def"] = (self.atributes["con"] / 4) + (
                 self.atributes["for"] / 2
             )
-            self.status["base_dmg"] = self.atributes["for"] / 2 + (self.atributes["con"] / 4)
+            self.status["base_dmg"] = self.atributes["for"] / 2 + (
+                self.atributes["con"] / 4
+            )
         elif weapon == "Riffle":
             self.status["atq"] = (self.atributes["des"] / 2) + (
                 self.status["level"] / 4
@@ -296,6 +304,37 @@ class Game:
             self.status["def"] = self.atributes["con"] / 2
             self.status["base_dmg"] = (self.atributes["int"] / 2) + (
                 self.status["level"] / 4
+            )
+
+        # Viribus Weapons
+
+        elif weapon == "Halberd":
+            self.status["atq"] = self.atributes["for"] / 2
+            self.status["def"] = (self.atributes["con"] / 4) + (
+                self.atributes["for"] / 2
+            )
+            self.status["base_dmg"] = (
+                (self.atributes["for"] / 2)
+                + (self.atributes["con"] / 4)
+                + (self.atributes["des"] / 2)
+            )
+        elif weapon == "Crossbow":
+            self.status["atq"] = (self.atributes["des"] / 2) + (
+                self.status["level"] / 4
+            )
+            self.status["def"] = (self.atributes["con"] / 2) + (
+                self.atributes["des"] / 4
+            )
+            self.status["base_dmg"] = (
+                (self.atributes["des"] / 2)
+                + (self.status["level"] / 4)
+                + (self.atributes["des"] / 4)
+            )
+        elif weapon == "Grimmoire":
+            self.status["atq"] = self.atributes["des"] / 2
+            self.status["def"] = self.atributes["con"] / 2
+            self.status["base_dmg"] = (self.atributes["int"] / 2) + (
+                self.status["level"] / 2
             )
 
     def read_weapons(self) -> str:
@@ -346,11 +385,12 @@ class Game:
             shard = rd.randint(1, 5) * self.monster["mult_shard"]
             round(shard, 2)
 
+        # Travas de nivel
         if self.check_barriers():
             exp = 0
-
-        # Travas de nivel
         if self.status["level"] >= 15 and self.boss_status["plains"] == 0:
+            exp = 0
+        if self.status["level"] >= 50 and self.boss_status["viribus"] == 0:
             exp = 0
 
         self.inventory["money"] += money
@@ -368,9 +408,18 @@ class Game:
     def get_boss_drop(self, name: str) -> str:
         drop_pool = []
         ctrl = True
-        self.ranger_drops = {"spell": ["Fireworks"], "weapon": ["Riffle"]}
-        self.guerreiro_drops = {"spell": ["Rebuke"], "weapon": ["Great Sword"]}
-        self.mago_drops = {"spell": ["Heal"], "weapon": ["Wand"]}
+        self.ranger_drops = {
+            "spell": ["Fireworks", "Faster Trigger"],
+            "weapon": ["Riffle", "Crossbow", "Shotgun"],
+        }
+        self.guerreiro_drops = {
+            "spell": ["Rebuke", "Blind"],
+            "weapon": ["Great Sword", "Halberd", "Axe"],
+        }
+        self.mago_drops = {
+            "spell": ["Heal", "Meditate"],
+            "weapon": ["Wand", "Grimmoire", "Skull Orb"],
+        }
 
         if name == "PlainsBoss":
             boss = "plains"
@@ -379,9 +428,19 @@ class Game:
                 self.regions_to_travel.append("viribus")
         elif name == "ViribusBoss":
             boss = "viribus"
-            drop_pool = []
+            drop_pool = [
+                "Faster Trigger",
+                "Blind",
+                "Meditate",
+                "Shotgun",
+                "Grimmoire",
+                "Axe",
+            ]
             if "prljav" not in self.regions_to_travel:
                 self.regions_to_travel.append("prljav")
+        elif name == "BoarBoss":
+            boss = "boar"
+            drop_pool = ["Crossbow", "Halberd", "Grimmoire"]
 
         loot = rd.choice(drop_pool)
         drops = getattr(self, f"{self.path.lower()}_drops")
