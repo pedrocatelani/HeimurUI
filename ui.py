@@ -1,7 +1,6 @@
 from time import sleep
 from pathlib import Path
-import PySimpleGUI as sg
-
+import FreeSimpleGUI as sg
 
 def get_theme(root: str) -> str:
     if root == "Alpha":
